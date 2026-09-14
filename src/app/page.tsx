@@ -194,6 +194,13 @@ export default function WorkstationPage() {
           >
             Laporan Cetak (PDF)
           </button>
+          <a
+            href="/api/export-kml"
+            download="Bank_Data_Properti_GoogleMyMaps.kml"
+            className="px-3 py-1.5 rounded text-xs font-medium bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center space-x-1"
+          >
+            <span>📥 Export KML (Google My Maps)</span>
+          </a>
         </div>
       </header>
 

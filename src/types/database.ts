@@ -39,6 +39,8 @@ export interface MarketComparableEntity {
   luas_tanah: number;
   luas_bangunan: number;
   kisaran_nilai_tanah: number | null;
+  harga_penawaran?: number | null;
+  harga_transaksi?: number | null;
   tanggal_data: string;
   surveyor_name: string | null;
   reviewer_name: string | null;
@@ -46,6 +48,7 @@ export interface MarketComparableEntity {
   legalitas: LegalitasEnum;
   tapak: TapakShapeEnum;
   row_jalan: number;
+  keterangan?: string | null;
   raw_metadata?: Record<string, any>;
   distance_meters?: number;
   created_at?: string;
