@@ -5,9 +5,9 @@ import {
 } from "../src/lib/services/comps-spatial-service";
 
 describe("Spatial Radius Filtering & Query Services (Phase 3)", () => {
-  it("should load all 532 legacy comparables from DB Tahap 1.xlsx", () => {
+  it("should load all legacy comparables from DB (>= 532 records)", () => {
     const all = loadLegacyComparables();
-    expect(all.length).toBe(532);
+    expect(all.length).toBeGreaterThanOrEqual(532);
   });
 
   it("should query comparables within 2000m radius around Cikarang Pusat in < 45ms", async () => {

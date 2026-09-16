@@ -12,6 +12,10 @@ interface ValuationMapProps {
   onEditProperty: (property: MarketComparableEntity) => void;
 }
 
+const CARTO_KEY = process.env.NEXT_PUBLIC_CARTO_KEY || "cb1_3ky1_1_8c915f3c2e662b82a87023cb";
+
+type BaseLayerId = "positron" | "dark" | "satellite" | "voyager";
+
 export function ValuationMap({
   properties,
   selectedProperty,
@@ -23,6 +27,31 @@ export function ValuationMap({
   const mapRef = useRef<MapLibreMap | null>(null);
   const markersRef = useRef<Marker[]>([]);
   const [activePopupProperty, setActivePopupProperty] = useState<MarketComparableEntity | null>(null);
+  const [activeBaseLayer, setActiveBaseLayer] = useState<BaseLayerId>("positron");
+
+  // Switch Active Map Layer
+  const handleLayerChange = (newLayer: BaseLayerId) => {
+    setActiveBaseLayer(newLayer);
+    const map = mapRef.current;
+    if (!map) return;
+
+    const layerMapping: Record<BaseLayerId, string> = {
+      positron: "carto-positron-layer",
+      dark: "carto-dark-layer",
+      satellite: "esri-satellite-layer",
+      voyager: "carto-voyager-layer",
+    };
+
+    Object.entries(layerMapping).forEach(([key, layerId]) => {
+      if (map.getLayer(layerId)) {
+        map.setLayoutProperty(
+          layerId,
+          "visibility",
+          key === newLayer ? "visible" : "none"
+        );
+      }
+    });
+  };
 
   // Initialize Map
   useEffect(() => {
@@ -35,7 +64,7 @@ export function ValuationMap({
       style: {
         version: 8,
         sources: {
-          "carto-positron": {
+          "carto-positron-source": {
             type: "raster",
             tiles: [
               "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
@@ -43,14 +72,71 @@ export function ValuationMap({
               "https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
             ],
             tileSize: 256,
-            attribution: "&copy; OpenStreetMap contributors &copy; CARTO",
+            attribution: "&copy; CARTO &copy; OpenStreetMap",
+            maxzoom: 20,
+          },
+          "carto-dark-source": {
+            type: "raster",
+            tiles: [
+              "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+              "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+              "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+            ],
+            tileSize: 256,
+            attribution: "&copy; CARTO &copy; OpenStreetMap",
+            maxzoom: 20,
+          },
+          "carto-voyager-source": {
+            type: "raster",
+            tiles: [
+              `https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${CARTO_KEY}`,
+              `https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${CARTO_KEY}`,
+              `https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${CARTO_KEY}`,
+            ],
+            tileSize: 256,
+            attribution: "&copy; CARTO &copy; OpenStreetMap",
+            maxzoom: 20,
+          },
+          "esri-satellite-source": {
+            type: "raster",
+            tiles: [
+              "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            ],
+            tileSize: 256,
+            attribution: "&copy; Esri &mdash; World Imagery",
+            maxzoom: 19,
           },
         },
         layers: [
           {
             id: "carto-positron-layer",
             type: "raster",
-            source: "carto-positron",
+            source: "carto-positron-source",
+            layout: { visibility: "visible" },
+            minzoom: 0,
+            maxzoom: 20,
+          },
+          {
+            id: "carto-dark-layer",
+            type: "raster",
+            source: "carto-dark-source",
+            layout: { visibility: "none" },
+            minzoom: 0,
+            maxzoom: 20,
+          },
+          {
+            id: "esri-satellite-layer",
+            type: "raster",
+            source: "esri-satellite-source",
+            layout: { visibility: "none" },
+            minzoom: 0,
+            maxzoom: 19,
+          },
+          {
+            id: "carto-voyager-layer",
+            type: "raster",
+            source: "carto-voyager-source",
+            layout: { visibility: "none" },
             minzoom: 0,
             maxzoom: 20,
           },
@@ -139,79 +225,113 @@ export function ValuationMap({
   }, [selectedProperty]);
 
   return (
-    <div className="relative w-full h-full min-h-[500px] rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-slate-100">
+    <div className="relative w-full h-full min-h-[500px] rounded-2xl overflow-hidden border border-slate-800 shadow-lg bg-slate-950">
       <div ref={mapContainerRef} className="w-full h-full" />
 
       {/* Floating Map Legend & Geotag Hint */}
-      <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-xs px-3.5 py-2 rounded-lg shadow-sm border border-slate-200 text-xs font-medium text-slate-700 flex items-center space-x-3 pointer-events-none">
+      <div className="absolute top-3 left-3 bg-slate-900/90 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-lg border border-slate-800 text-xs font-medium text-slate-300 flex items-center space-x-3 pointer-events-none z-10">
         <div className="flex items-center space-x-1.5">
-          <span className="w-3 h-3 rounded-full bg-sky-600 inline-block"></span>
-          <span className="text-[11px]">Tanah & Bangunan</span>
+          <span className="w-2.5 h-2.5 rounded-full bg-sky-500 inline-block shadow-xs shadow-sky-500/50"></span>
+          <span className="text-[11px] font-semibold text-slate-200">Tanah & Bangunan</span>
         </div>
         <div className="flex items-center space-x-1.5">
-          <span className="w-3 h-3 rounded-full bg-amber-600 inline-block"></span>
-          <span className="text-[11px]">Tanah Kosong</span>
+          <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block shadow-xs shadow-amber-500/50"></span>
+          <span className="text-[11px] font-semibold text-slate-200">Tanah Kosong</span>
         </div>
-        <div className="text-slate-400 text-[10px] pl-2 border-l border-slate-200">
+        <div className="text-slate-500 text-[10px] pl-2 border-l border-slate-800 font-mono">
           📍 Klik kanan peta untuk tambah titik
         </div>
       </div>
 
+      {/* Base Layer Switcher (CARTO Voyager, OSM, Satelit) */}
+      <div className="absolute top-3 right-14 bg-slate-900/90 backdrop-blur-md p-1 rounded-xl shadow-lg border border-slate-800 flex items-center space-x-1 z-10">
+        <button
+          type="button"
+          onClick={() => handleLayerChange("voyager")}
+          className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            activeBaseLayer === "voyager"
+              ? "bg-slate-800 text-white shadow-xs border border-slate-700"
+              : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+          }`}
+          title="CARTO Voyager (Bebas Watermark)"
+        >
+          🗺️ Voyager
+        </button>
+        <button
+          type="button"
+          onClick={() => handleLayerChange("satellite")}
+          className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            activeBaseLayer === "satellite"
+              ? "bg-slate-800 text-white shadow-xs border border-slate-700"
+              : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+          }`}
+          title="Foto Satelit Esri World Imagery"
+        >
+          🛰️ Satelit
+        </button>
+      </div>
+
       {/* Selected Property Inspector Card (Bottom-Left Drawer) */}
       {activePopupProperty && (
-        <div className="absolute bottom-4 left-4 right-4 md:right-auto md:w-96 bg-white/95 backdrop-blur-md rounded-xl p-4 shadow-xl border border-slate-200 z-20 space-y-3">
+        <div className="absolute bottom-4 left-4 right-4 md:right-auto md:w-96 bg-slate-900/95 backdrop-blur-md rounded-2xl p-4 shadow-2xl border border-slate-800 z-20 space-y-3">
           <div className="flex items-start justify-between">
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-sky-700 bg-sky-50 px-2 py-0.5 rounded">
+              <span
+                className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                  activePopupProperty.jenis_properti === "TANAH_KOSONG"
+                    ? "bg-amber-950/80 text-amber-400 border-amber-800/80"
+                    : "bg-sky-950/80 text-sky-400 border-sky-800/80"
+                }`}
+              >
                 Data #{activePopupProperty.legacy_no || activePopupProperty.id} • {activePopupProperty.jenis_properti}
               </span>
-              <h4 className="text-sm font-bold text-slate-900 mt-1 line-clamp-2">
+              <h4 className="text-sm font-bold text-slate-100 mt-1.5 line-clamp-2 leading-snug">
                 {activePopupProperty.alamat}
               </h4>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-400 mt-0.5">
                 {activePopupProperty.desa_kelurahan ? `${activePopupProperty.desa_kelurahan}, ` : ""}
                 {activePopupProperty.kecamatan}, {activePopupProperty.kota_kab}
               </p>
             </div>
             <button
               onClick={() => setActivePopupProperty(null)}
-              className="text-slate-400 hover:text-slate-600 font-bold p-1 text-sm"
+              className="text-slate-500 hover:text-slate-200 font-bold p-1 text-sm transition cursor-pointer"
             >
               ✕
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+          <div className="grid grid-cols-2 gap-2 text-xs bg-slate-950/80 p-3 rounded-xl border border-slate-800/80">
             <div>
-              <span className="text-slate-400 text-[10px] block">Kisaran Nilai Tanah</span>
-              <span className="font-bold text-sky-800 font-mono text-sm">
+              <span className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold block">Kisaran Nilai Tanah</span>
+              <span className="font-bold text-emerald-400 font-mono text-sm">
                 {activePopupProperty.kisaran_nilai_tanah
                   ? `Rp ${activePopupProperty.kisaran_nilai_tanah.toLocaleString("id-ID")}/m²`
                   : "Belum Dinilai"}
               </span>
             </div>
             <div>
-              <span className="text-slate-400 text-[10px] block">Luas Tanah / Bangunan</span>
-              <span className="font-bold text-slate-800 font-mono">
+              <span className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold block">Luas Tanah / Bangunan</span>
+              <span className="font-bold text-slate-200 font-mono">
                 {activePopupProperty.luas_tanah} m² / {activePopupProperty.luas_bangunan} m²
               </span>
             </div>
             <div>
-              <span className="text-slate-400 text-[10px] block">Legalitas / Tapak</span>
-              <span className="font-medium text-slate-700">
+              <span className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold block">Legalitas / Tapak</span>
+              <span className="font-medium text-slate-300">
                 {activePopupProperty.legalitas} ({activePopupProperty.tapak})
               </span>
             </div>
             <div>
-              <span className="text-slate-400 text-[10px] block">Surveyor / Tanggal</span>
-              <span className="font-medium text-slate-700">
+              <span className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold block">Surveyor / Tanggal</span>
+              <span className="font-medium text-slate-300">
                 {activePopupProperty.surveyor_name || "-"} ({activePopupProperty.tanggal_data})
               </span>
             </div>
           </div>
 
           {activePopupProperty.keterangan && (
-            <div className="text-[11px] text-slate-600 bg-amber-50 p-2 rounded border border-amber-100">
+            <div className="text-[11px] text-slate-300 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80 leading-relaxed">
               {activePopupProperty.keterangan}
             </div>
           )}
@@ -219,15 +339,16 @@ export function ValuationMap({
           <div className="flex items-center space-x-2 pt-1">
             <button
               onClick={() => onEditProperty(activePopupProperty)}
-              className="flex-1 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded text-xs font-bold transition flex items-center justify-center space-x-1 shadow-xs"
+              className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-xs active:scale-[0.98] cursor-pointer flex items-center justify-center space-x-1.5"
             >
-              <span>✏️ Edit Data</span>
+              <span>✏️</span>
+              <span>Edit Data</span>
             </button>
             <a
               href={`https://www.google.com/maps?q=${activePopupProperty.latitude},${activePopupProperty.longitude}`}
               target="_blank"
               rel="noreferrer"
-              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-medium transition"
+              className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition-all active:scale-[0.98] cursor-pointer"
             >
               Buka Google Maps
             </a>

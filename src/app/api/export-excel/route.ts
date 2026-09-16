@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { exportToExcelBuffer } from "@/lib/services/comps-spatial-service";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const buffer = exportToExcelBuffer();
   return new NextResponse(new Uint8Array(buffer), {

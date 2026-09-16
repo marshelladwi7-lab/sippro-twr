@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { loadLegacyComparables } from "@/lib/services/comps-spatial-service";
 import { exportComparablesToKml } from "@/lib/gis/kml-adapter";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const allComps = loadLegacyComparables();
   const kmlContent = exportComparablesToKml(

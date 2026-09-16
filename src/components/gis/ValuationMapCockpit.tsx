@@ -17,16 +17,19 @@ import {
   Eye,
   MapPin,
   Maximize2,
+  Globe,
+  Compass,
 } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { useTheme } from "@/lib/theme/theme-context";
 
 function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
-export type BasemapMode = "light" | "dark";
+export type BasemapMode = "positron" | "dark" | "satellite" | "voyager";
 export type RadiusKmOption = 1 | 2 | 3 | 5;
 
 export interface SubjectLocation {
@@ -110,24 +113,35 @@ export function ValuationMapCockpit({
   onRadiusKmChange,
   className,
 }: ValuationMapCockpitProps) {
+  const { theme } = useTheme();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const subjectMarkerRef = useRef<MapMarker | null>(null);
   const compMarkersRef = useRef<MapMarker[]>([]);
 
-  const [basemap, setBasemap] = useState<BasemapMode>("light");
+  // Basemap state: defaults to dark or positron based on active theme
+  const [basemap, setBasemap] = useState<BasemapMode>(theme === "dark" ? "dark" : "positron");
   const [internalRadiusKm, setInternalRadiusKm] = useState<RadiusKmOption>(2);
   const activeRadiusKm = externalRadiusKm ?? internalRadiusKm;
 
   const [activePopupComp, setActivePopupComp] =
     useState<MarketComparableEntity | null>(null);
 
+  // Sync basemap default when site theme changes, unless user explicitly selected satellite/voyager
+  useEffect(() => {
+    if (basemap === "dark" && theme === "light") {
+      setBasemap("positron");
+    } else if (basemap === "positron" && theme === "dark") {
+      setBasemap("dark");
+    }
+  }, [theme]);
+
   const handleRadiusChange = (r: RadiusKmOption) => {
     setInternalRadiusKm(r);
     onRadiusKmChange?.(r);
   };
 
-  // Initialize Map
+  // Initialize Map with Watermark-Free Carto and Esri Satellite
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
@@ -149,7 +163,7 @@ export function ValuationMapCockpit({
               "https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
             ],
             tileSize: 256,
-            attribution: "&copy; OpenStreetMap contributors &copy; CARTO",
+            attribution: "&copy; CARTO &copy; OpenStreetMap",
           },
           "carto-dark": {
             type: "raster",
@@ -159,7 +173,27 @@ export function ValuationMapCockpit({
               "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
             ],
             tileSize: 256,
-            attribution: "&copy; OpenStreetMap contributors &copy; CARTO",
+            attribution: "&copy; CARTO &copy; OpenStreetMap",
+          },
+          "esri-satellite": {
+            type: "raster",
+            tiles: [
+              "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            ],
+            tileSize: 256,
+            attribution: "&copy; Esri &mdash; World Imagery",
+            maxzoom: 19,
+          },
+          "carto-voyager": {
+            type: "raster",
+            tiles: [
+              "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+              "https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+              "https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+            ],
+            tileSize: 256,
+            attribution: "&copy; CARTO &copy; OpenStreetMap",
+            maxzoom: 20,
           },
         },
         layers: [
@@ -170,7 +204,7 @@ export function ValuationMapCockpit({
             minzoom: 0,
             maxzoom: 20,
             layout: {
-              visibility: "visible",
+              visibility: basemap === "positron" ? "visible" : "none",
             },
           },
           {
@@ -180,7 +214,27 @@ export function ValuationMapCockpit({
             minzoom: 0,
             maxzoom: 20,
             layout: {
-              visibility: "none",
+              visibility: basemap === "dark" ? "visible" : "none",
+            },
+          },
+          {
+            id: "esri-satellite-layer",
+            type: "raster",
+            source: "esri-satellite",
+            minzoom: 0,
+            maxzoom: 19,
+            layout: {
+              visibility: basemap === "satellite" ? "visible" : "none",
+            },
+          },
+          {
+            id: "carto-voyager-layer",
+            type: "raster",
+            source: "carto-voyager",
+            minzoom: 0,
+            maxzoom: 20,
+            layout: {
+              visibility: basemap === "voyager" ? "visible" : "none",
             },
           },
         ],
@@ -212,7 +266,7 @@ export function ValuationMapCockpit({
         type: "fill",
         source: "subject-radius-source",
         paint: {
-          "fill-color": "#0284c7",
+          "fill-color": "#10b981",
           "fill-opacity": 0.08,
         },
       });
@@ -222,7 +276,7 @@ export function ValuationMapCockpit({
         type: "line",
         source: "subject-radius-source",
         paint: {
-          "line-color": "#0284c7",
+          "line-color": "#10b981",
           "line-width": 1.5,
           "line-dasharray": [3, 2],
           "line-opacity": 0.8,
@@ -238,22 +292,26 @@ export function ValuationMapCockpit({
     };
   }, []);
 
-  // Update Basemap Layer Visibility
+  // Update Basemap Layer Visibility on change
   useEffect(() => {
     if (!mapRef.current) return;
     const map = mapRef.current;
-    if (map.getLayer("carto-positron-layer") && map.getLayer("carto-dark-layer")) {
-      map.setLayoutProperty(
-        "carto-positron-layer",
-        "visibility",
-        basemap === "light" ? "visible" : "none"
-      );
-      map.setLayoutProperty(
-        "carto-dark-layer",
-        "visibility",
-        basemap === "dark" ? "visible" : "none"
-      );
-    }
+    const layers: Record<BasemapMode, string> = {
+      positron: "carto-positron-layer",
+      dark: "carto-dark-layer",
+      satellite: "esri-satellite-layer",
+      voyager: "carto-voyager-layer",
+    };
+
+    Object.entries(layers).forEach(([mode, layerId]) => {
+      if (map.getLayer(layerId)) {
+        map.setLayoutProperty(
+          layerId,
+          "visibility",
+          mode === basemap ? "visible" : "none"
+        );
+      }
+    });
   }, [basemap]);
 
   // Update Radius Circle GeoJSON when Subject or Radius Changes
@@ -284,15 +342,15 @@ export function ValuationMapCockpit({
     subjectEl.className = "group relative cursor-grab active:cursor-grabbing select-none";
     subjectEl.innerHTML = `
       <div class="relative flex items-center justify-center">
-        <div class="absolute -inset-3 rounded-full bg-rose-500/30 animate-ping"></div>
-        <div class="absolute -inset-1.5 rounded-full bg-rose-500/20"></div>
-        <div class="w-8 h-8 rounded-full bg-rose-600 border-2 border-white shadow-xl flex items-center justify-center text-white ring-2 ring-rose-400/80 z-20">
+        <div class="absolute -inset-3 rounded-full bg-emerald-500/30 animate-ping"></div>
+        <div class="absolute -inset-1.5 rounded-full bg-emerald-500/20"></div>
+        <div class="w-8 h-8 rounded-full bg-emerald-600 border-2 border-white shadow-xl flex items-center justify-center text-white ring-2 ring-emerald-400/80 z-20">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
           </svg>
         </div>
         <div class="absolute top-9 px-1.5 py-0.5 rounded bg-slate-900/90 text-[9px] font-bold text-white shadow uppercase tracking-wider whitespace-nowrap pointer-events-none">
-          Agunan (Subject)
+          Target Estimasi
         </div>
       </div>
     `;
@@ -310,17 +368,13 @@ export function ValuationMapCockpit({
     });
 
     subjectMarkerRef.current = marker;
-
-    return () => {
-      marker.remove();
-    };
   }, [subjectLocation.latitude, subjectLocation.longitude, onSubjectCoordinateChange]);
 
   // Update Comparable Markers
   useEffect(() => {
     if (!mapRef.current) return;
+    const map = mapRef.current;
 
-    // Clear previous comp markers
     compMarkersRef.current.forEach((m) => m.remove());
     compMarkersRef.current = [];
 
@@ -328,64 +382,85 @@ export function ValuationMapCockpit({
       if (!comp.latitude || !comp.longitude) return;
 
       const isSelected = selectedCompIds.includes(comp.id);
-      const selectedIndex = isSelected
-        ? selectedCompIds.indexOf(comp.id) + 1
-        : null;
+      const isKosong = comp.jenis_properti === "TANAH_KOSONG";
 
-      const el = document.createElement("div");
-      el.className = "cursor-pointer transition-transform hover:scale-110 select-none";
+      const distMeters = calculateDistanceMeters(
+        subjectLocation.latitude,
+        subjectLocation.longitude,
+        comp.latitude,
+        comp.longitude
+      );
+      const isWithinRadius = distMeters <= activeRadiusKm * 1000;
 
-      if (isSelected) {
-        // Emerald numbered pin for selected comps
-        el.innerHTML = `
-          <div class="relative flex items-center justify-center">
-            <div class="w-7 h-7 rounded-full bg-emerald-600 border-2 border-white shadow-lg flex items-center justify-center font-mono font-bold text-white text-[10px] ring-2 ring-emerald-400 z-10">
-              DP${selectedIndex}
-            </div>
+      const markerEl = document.createElement("div");
+      markerEl.className = "cursor-pointer group relative select-none transition-transform duration-150 hover:scale-115";
+
+      const badgeColor = isSelected
+        ? "bg-emerald-600 border-white text-white shadow-emerald-500/40 ring-2 ring-emerald-400"
+        : isWithinRadius
+        ? "bg-sky-600 border-white text-white shadow-sky-500/30"
+        : "bg-slate-600/90 border-slate-300 text-slate-200 opacity-70";
+
+      markerEl.innerHTML = `
+        <div class="relative flex flex-col items-center">
+          <div class="w-6 h-6 rounded-full border-2 shadow-lg flex items-center justify-center font-mono font-bold text-[9px] ${badgeColor} transition-all">
+            ${comp.legacy_no ? comp.legacy_no : comp.id.slice(-2)}
           </div>
-        `;
-      } else {
-        // Sky blue pin for unselected market comps
-        const displayLabel = comp.legacy_no ? `#${comp.legacy_no}` : "•";
-        el.innerHTML = `
-          <div class="relative flex items-center justify-center">
-            <div class="w-6 h-6 rounded-full bg-sky-600 hover:bg-sky-500 border-2 border-white shadow-md flex items-center justify-center font-mono font-bold text-white text-[9px] ring-1 ring-sky-300">
-              ${displayLabel}
-            </div>
+          ${
+            isSelected
+              ? `<div class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border border-white"></div>`
+              : ""
+          }
+          <div class="hidden group-hover:flex absolute top-7 z-30 px-2 py-1 rounded bg-slate-900/95 text-white text-[10px] font-sans shadow-xl border border-slate-700 whitespace-nowrap flex-col items-center pointer-events-none">
+            <span class="font-bold line-clamp-1">${comp.alamat || "Pembanding"}</span>
+            <span class="text-emerald-400 font-mono font-semibold">${
+              comp.kisaran_nilai_tanah
+                ? `Rp ${comp.kisaran_nilai_tanah.toLocaleString("id-ID")}/m²`
+                : "Belum Ada Nilai"
+            }</span>
+            <span class="text-slate-400 text-[9px]">Jarak: ${
+              distMeters < 1000
+                ? `${distMeters} m`
+                : `${(distMeters / 1000).toFixed(2)} km`
+            }</span>
           </div>
-        `;
-      }
+        </div>
+      `;
 
-      el.addEventListener("click", (e) => {
+      markerEl.addEventListener("click", (e) => {
         e.stopPropagation();
         setActivePopupComp(comp);
         onSelectComp?.(comp);
       });
 
-      const marker = new maplibregl.Marker({ element: el })
+      const m = new maplibregl.Marker({ element: markerEl })
         .setLngLat([comp.longitude, comp.latitude])
-        .addTo(mapRef.current!);
+        .addTo(map);
 
-      compMarkersRef.current.push(marker);
+      compMarkersRef.current.push(m);
     });
-  }, [properties, selectedCompIds, onSelectComp]);
+  }, [
+    properties,
+    selectedCompIds,
+    activeRadiusKm,
+    subjectLocation.latitude,
+    subjectLocation.longitude,
+    onSelectComp,
+  ]);
 
-  // Re-center on Subject
-  const handleRecenter = useCallback(() => {
+  const handleRecenter = () => {
     if (!mapRef.current) return;
     mapRef.current.flyTo({
       center: [subjectLocation.longitude, subjectLocation.latitude],
       zoom: 14,
-      duration: 1000,
+      pitch: 0,
+      bearing: 0,
       essential: true,
     });
-  }, [subjectLocation]);
+  };
 
-  // Distance of active popup comp to subject
   const activeDistance = useMemo(() => {
-    if (!activePopupComp || !activePopupComp.latitude || !activePopupComp.longitude) {
-      return null;
-    }
+    if (!activePopupComp) return null;
     return calculateDistanceMeters(
       subjectLocation.latitude,
       subjectLocation.longitude,
@@ -394,55 +469,87 @@ export function ValuationMapCockpit({
     );
   }, [activePopupComp, subjectLocation]);
 
-  const isPopupCompSelected = activePopupComp
-    ? selectedCompIds.includes(activePopupComp.id)
-    : false;
+  const isPopupCompSelected = useMemo(() => {
+    if (!activePopupComp) return false;
+    return selectedCompIds.includes(activePopupComp.id);
+  }, [activePopupComp, selectedCompIds]);
 
   return (
     <div
       className={cn(
-        "relative w-full h-[520px] rounded-lg overflow-hidden border border-slate-200 bg-slate-100 shadow-2xs",
+        "relative w-full h-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 shadow-sm",
         className
       )}
     >
       <div ref={mapContainerRef} className="w-full h-full" />
 
-      {/* Top Left Cockpit Bar: Basemap Toggle & Radius Pills */}
+      {/* Top Left Cockpit Bar: Watermark-Free Basemap Selector & Radius Pills */}
       <div className="absolute top-3 left-3 z-10 flex flex-wrap items-center gap-2">
-        {/* Basemap Toggle */}
-        <div className="flex items-center rounded-md bg-white/95 backdrop-blur-xs border border-slate-200 shadow-xs p-0.5 text-xs">
+        {/* Watermark-Free Basemap Switcher */}
+        <div className="flex items-center rounded-xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 shadow-md p-1 text-xs">
           <button
             type="button"
-            onClick={() => setBasemap("light")}
+            onClick={() => setBasemap("positron")}
             className={cn(
-              "flex items-center gap-1 px-2 py-1 rounded font-semibold text-[11px] transition-colors",
-              basemap === "light"
-                ? "bg-slate-900 text-white shadow-2xs"
-                : "text-slate-600 hover:text-slate-900"
+              "flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-semibold text-[11px] transition-all cursor-pointer",
+              basemap === "positron"
+                ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow-xs"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             )}
-            title="CARTO Positron (Light)"
+            title="Peta Terang (CARTO Positron - Bebas Watermark)"
           >
-            <Sun className="w-3 h-3" />
-            <span>Light</span>
+            <Sun className="w-3 h-3 text-amber-500" />
+            <span>Terang</span>
           </button>
+
           <button
             type="button"
             onClick={() => setBasemap("dark")}
             className={cn(
-              "flex items-center gap-1 px-2 py-1 rounded font-semibold text-[11px] transition-colors",
+              "flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-semibold text-[11px] transition-all cursor-pointer",
               basemap === "dark"
-                ? "bg-slate-900 text-white shadow-2xs"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow-xs"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             )}
-            title="CARTO Dark Matter"
+            title="Peta Gelap (CARTO Dark Matter - Bebas Watermark)"
           >
-            <Moon className="w-3 h-3" />
-            <span>Dark</span>
+            <Moon className="w-3 h-3 text-sky-400" />
+            <span>Gelap</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setBasemap("satellite")}
+            className={cn(
+              "flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-semibold text-[11px] transition-all cursor-pointer",
+              basemap === "satellite"
+                ? "bg-emerald-600 text-white shadow-xs"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+            )}
+            title="Citra Satelit Resolusi Tinggi (Esri World Imagery - Bebas Watermark)"
+          >
+            <Globe className="w-3 h-3 text-emerald-400" />
+            <span>Satelit</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setBasemap("voyager")}
+            className={cn(
+              "flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-semibold text-[11px] transition-all cursor-pointer",
+              basemap === "voyager"
+                ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow-xs"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+            )}
+            title="Peta Vektor Detail (CARTO Voyager - Bebas Watermark)"
+          >
+            <Compass className="w-3 h-3 text-teal-400" />
+            <span>Vektor</span>
           </button>
         </div>
 
         {/* Radius Filter Pills */}
-        <div className="flex items-center rounded-md bg-white/95 backdrop-blur-xs border border-slate-200 shadow-xs p-0.5 text-xs">
+        <div className="flex items-center rounded-xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 shadow-md p-1 text-xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2">
             Radius
           </span>
@@ -452,10 +559,10 @@ export function ValuationMapCockpit({
               type="button"
               onClick={() => handleRadiusChange(r)}
               className={cn(
-                "px-2 py-1 rounded font-mono font-bold text-[11px] transition-colors",
+                "px-2.5 py-1 rounded-lg font-mono font-bold text-[11px] transition-all cursor-pointer",
                 activeRadiusKm === r
-                  ? "bg-sky-600 text-white shadow-2xs"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-emerald-600 text-white shadow-xs"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               )}
             >
               {r}km
@@ -467,59 +574,55 @@ export function ValuationMapCockpit({
         <button
           type="button"
           onClick={handleRecenter}
-          className="flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-white/95 backdrop-blur-xs border border-slate-200 shadow-xs text-[11px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-          title="Fokuskan ke Agunan (Subject)"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 shadow-md text-[11px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer"
+          title="Fokuskan ke Target Properti"
         >
-          <Crosshair className="w-3.5 h-3.5 text-rose-600" />
-          <span>Ke Subject</span>
+          <Crosshair className="w-3.5 h-3.5 text-emerald-500" />
+          <span>Ke Target</span>
         </button>
       </div>
 
       {/* Bottom Left Legend & Instruction */}
-      <div className="absolute bottom-3 left-3 z-10 bg-white/90 backdrop-blur-xs px-3 py-1.5 rounded-md border border-slate-200 shadow-xs text-[10px] text-slate-600 flex flex-wrap items-center gap-3 pointer-events-none">
-        <div className="flex items-center gap-1.5 font-medium">
-          <span className="w-2.5 h-2.5 rounded-full bg-rose-600 inline-block ring-1 ring-white" />
-          <span className="font-semibold text-slate-800">Agunan (Subject)</span>
-        </div>
+      <div className="absolute bottom-3 left-3 z-10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-md text-[11px] text-slate-600 dark:text-slate-300 flex flex-wrap items-center gap-3.5 pointer-events-none">
         <div className="flex items-center gap-1.5 font-medium">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block ring-1 ring-white" />
-          <span>Terpilih KKP ({selectedCompIds.length})</span>
+          <span className="font-semibold text-slate-900 dark:text-white">Target Estimasi</span>
         </div>
         <div className="flex items-center gap-1.5 font-medium">
           <span className="w-2.5 h-2.5 rounded-full bg-sky-600 inline-block ring-1 ring-white" />
-          <span>Pembanding Pasar ({properties.length})</span>
+          <span>Radius {activeRadiusKm} km</span>
         </div>
-        <div className="text-slate-400 pl-2 border-l border-slate-200 font-mono hidden sm:inline">
-          💡 Drag pin merah untuk kalibrasi koordinat
+        <div className="flex items-center gap-1.5 font-medium">
+          <span className="w-2.5 h-2.5 rounded-full bg-slate-500 inline-block ring-1 ring-white" />
+          <span>Data Pembanding ({properties.length})</span>
+        </div>
+        <div className="text-slate-400 dark:text-slate-500 pl-2 border-l border-slate-200 dark:border-slate-800 font-mono hidden sm:inline text-[10px]">
+          💡 Drag pin hijau untuk memindahkan titik estimasi
         </div>
       </div>
 
       {/* Interactive Selected Comparable Floating Card */}
       {activePopupComp && (
-        <div className="absolute top-14 right-3 z-20 w-84 max-w-[calc(100vw-2rem)] bg-white/98 backdrop-blur-md rounded-lg shadow-xl border border-slate-200/90 p-3.5 space-y-2.5 animate-in fade-in slide-in-from-top-2 duration-150">
-          <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-2">
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <Badge variant={isPopupCompSelected ? "success" : "info"} size="xs">
-                  {isPopupCompSelected
-                    ? `KKP DP #${selectedCompIds.indexOf(activePopupComp.id) + 1}`
-                    : `Data #${activePopupComp.legacy_no || activePopupComp.id.slice(0, 5)}`}
-                </Badge>
-                <span className="text-[10px] font-mono text-slate-400">
-                  {activePopupComp.jenis_properti}
+        <div className="absolute top-14 right-3 z-20 w-84 max-w-[calc(100vw-2rem)] bg-white/98 dark:bg-slate-900/98 backdrop-blur-md rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150 text-slate-900 dark:text-slate-100">
+          <div className="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-2.5">
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-bold">
+                  DP #{activePopupComp.legacy_no || activePopupComp.id}
+                </span>
+                <span className="text-[10px] text-slate-400 font-mono">
+                  {activePopupComp.tanggal_data || "2026"}
                 </span>
               </div>
-              <h4 className="text-xs font-bold text-slate-900 mt-1 line-clamp-1">
+              <h4 className="font-bold text-xs text-slate-900 dark:text-white mt-1 line-clamp-1 leading-snug">
                 {activePopupComp.alamat}
               </h4>
-              <p className="text-[11px] text-slate-500 truncate">
-                {activePopupComp.kecamatan}, {activePopupComp.kota_kab}
-              </p>
             </div>
+
             <button
               type="button"
               onClick={() => setActivePopupComp(null)}
-              className="text-slate-400 hover:text-slate-600 p-0.5 text-xs font-bold shrink-0"
+              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 text-xs font-bold shrink-0 cursor-pointer"
               aria-label="Tutup"
             >
               ✕
@@ -527,12 +630,12 @@ export function ValuationMapCockpit({
           </div>
 
           {/* Quick Stats Grid */}
-          <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2 rounded border border-slate-100 font-mono">
+          <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 dark:bg-slate-950 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 font-mono">
             <div>
               <span className="text-slate-400 text-[9px] uppercase tracking-wider block font-sans">
-                Indikasi Nilai Tanah
+                Nilai Tanah Pasar
               </span>
-              <span className="font-bold text-sky-800 text-xs tabular-nums">
+              <span className="font-bold text-emerald-600 dark:text-emerald-400 text-xs tabular-nums">
                 {activePopupComp.kisaran_nilai_tanah
                   ? `Rp ${activePopupComp.kisaran_nilai_tanah.toLocaleString("id-ID")}/m²`
                   : "N/A"}
@@ -540,9 +643,9 @@ export function ValuationMapCockpit({
             </div>
             <div>
               <span className="text-slate-400 text-[9px] uppercase tracking-wider block font-sans">
-                Jarak ke Subject
+                Jarak ke Target
               </span>
-              <span className="font-bold text-slate-800 text-xs tabular-nums">
+              <span className="font-bold text-slate-800 dark:text-slate-200 text-xs tabular-nums">
                 {activeDistance !== null
                   ? activeDistance < 1000
                     ? `${activeDistance} m`
@@ -552,9 +655,9 @@ export function ValuationMapCockpit({
             </div>
             <div>
               <span className="text-slate-400 text-[9px] uppercase tracking-wider block font-sans">
-                Luas T / B
+                Luas Tanah / Bangunan
               </span>
-              <span className="font-semibold text-slate-700 text-[11px] tabular-nums">
+              <span className="font-semibold text-slate-700 dark:text-slate-300 text-[11px] tabular-nums">
                 {activePopupComp.luas_tanah} m² / {activePopupComp.luas_bangunan} m²
               </span>
             </div>
@@ -562,21 +665,21 @@ export function ValuationMapCockpit({
               <span className="text-slate-400 text-[9px] uppercase tracking-wider block font-sans">
                 Legalitas & Tapak
               </span>
-              <span className="font-semibold text-slate-700 text-[11px] truncate block">
+              <span className="font-semibold text-slate-700 dark:text-slate-300 text-[11px] truncate block">
                 {activePopupComp.legalitas} • {activePopupComp.tapak}
               </span>
             </div>
           </div>
 
           {/* Action Rail */}
-          <div className="flex items-center gap-1.5 pt-0.5">
+          <div className="flex items-center gap-2 pt-1">
             <button
               type="button"
               onClick={() => onInspectComp(activePopupComp)}
-              className="flex-1 py-1.5 px-2 bg-slate-900 hover:bg-slate-800 text-white rounded text-xs font-semibold transition flex items-center justify-center gap-1 shadow-2xs"
+              className="flex-1 py-1.5 px-2.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
             >
               <Eye className="w-3.5 h-3.5 text-sky-400" />
-              <span>Buka Detail</span>
+              <span>Detail Properti</span>
             </button>
 
             {onToggleSelectComp && (
@@ -584,21 +687,21 @@ export function ValuationMapCockpit({
                 type="button"
                 onClick={() => onToggleSelectComp(activePopupComp)}
                 className={cn(
-                  "py-1.5 px-2.5 rounded text-xs font-semibold transition flex items-center justify-center gap-1 border",
+                  "py-1.5 px-3 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 border cursor-pointer",
                   isPopupCompSelected
-                    ? "bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100"
-                    : "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                    ? "bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800"
+                    : "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
                 )}
               >
                 {isPopupCompSelected ? (
                   <>
-                    <XCircle className="w-3.5 h-3.5" />
-                    <span>Lepas KKP</span>
+                    <XCircle className="w-3.5 h-3.5 text-rose-500" />
+                    <span>Hapus Pilihan</span>
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Pilih KKP</span>
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>Pilih Analisis</span>
                   </>
                 )}
               </button>
@@ -608,7 +711,7 @@ export function ValuationMapCockpit({
               href={`https://www.google.com/maps?q=${activePopupComp.latitude},${activePopupComp.longitude}`}
               target="_blank"
               rel="noreferrer"
-              className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded border border-slate-200 transition"
+              className="p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 transition-all"
               title="Buka di Google Maps"
             >
               <ExternalLink className="w-3.5 h-3.5" />

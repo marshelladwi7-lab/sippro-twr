@@ -123,7 +123,7 @@ export function calculateMarketApproach(
       comparables: [],
       indicatedLandUnitPrice: 0,
       totalWeight: 0,
-      allCompliant: true,
+      allCompliant: false,
       auditNotes: ["Tidak ada data pembanding yang dipilih."],
     };
   }
@@ -222,12 +222,14 @@ export function calculateMarketApproach(
     comparables.reduce((acc, c) => acc + c.adjustedUnitPrice * c.weight, 0)
   );
 
-  const allCompliant = comparables.every((c) => c.compliance.isCompliant);
+  const allCompliant =
+    comparables.length > 0 &&
+    comparables.every((c) => c.compliance.isCompliant);
 
   return {
     comparables,
     indicatedLandUnitPrice,
-    totalWeight: 1.0,
+    totalWeight: comparables.length > 0 ? 1.0 : 0,
     allCompliant,
     auditNotes,
   };

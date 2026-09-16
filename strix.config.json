@@ -1,0 +1,49 @@
+{
+  "name": "SIPPRO-TWR Valuation Bank Data Security Audit",
+  "version": "1.0.0",
+  "engine": "strix",
+  "target": {
+    "baseUrl": "http://localhost:3000",
+    "environments": ["development", "staging", "production"]
+  },
+  "scanners": {
+    "owaspTop10": {
+      "injection": {
+        "enabled": true,
+        "endpoints": ["/api/properties", "/api/comparables", "/api/auth/login"],
+        "parameters": ["q", "type", "lat", "lng", "radius", "username", "role"]
+      },
+      "brokenAuthentication": {
+        "enabled": true,
+        "cookieName": "twr_auth_session",
+        "protectedRoutes": ["/workstation", "/api/properties", "/api/import"]
+      },
+      "sensitiveDataExposure": {
+        "enabled": true,
+        "rules": ["no-stacktraces", "no-plaintext-credentials", "secure-headers-present"]
+      },
+      "crossSiteScripting": {
+        "enabled": true,
+        "inputForms": ["/login", "/workstation"]
+      },
+      "securityMisconfiguration": {
+        "enabled": true,
+        "requiredHeaders": [
+          "Content-Security-Policy",
+          "X-Frame-Options",
+          "X-Content-Type-Options",
+          "Strict-Transport-Security",
+          "Referrer-Policy"
+        ]
+      }
+    }
+  },
+  "roles": [
+    { "role": "admin", "expectedStatus": 200 },
+    { "role": "penilai", "expectedStatus": 200 },
+    { "role": "reviewer", "expectedStatus": 200 },
+    { "role": "surveyor", "expectedStatus": 200 },
+    { "role": "guest", "expectedStatus": 200 },
+    { "role": "anonymous", "expectedProtectedStatus": 307 }
+  ]
+}
