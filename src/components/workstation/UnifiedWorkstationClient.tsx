@@ -113,6 +113,40 @@ export function UnifiedWorkstationClient({
     setIsDrawerOpen(true);
   }, []);
 
+  // Handle adding point of interest from map click or right click
+  const handleAddPointOfInterest = useCallback(
+    (coord: { latitude: number; longitude: number }) => {
+      setEditingProperty({
+        id: "",
+        legacy_no: "",
+        alamat: "",
+        provinsi: "",
+        kota_kab: "",
+        kecamatan: "",
+        desa_kelurahan: "",
+        latitude: coord.latitude,
+        longitude: coord.longitude,
+        jenis_properti: "TANAH_BANGUNAN",
+        luas_tanah: 100,
+        luas_bangunan: 0,
+        kisaran_nilai_tanah: 3000000,
+        harga_penawaran: null,
+        harga_transaksi: null,
+        tanggal_data: new Date().toISOString().split("T")[0],
+        surveyor_name: "",
+        reviewer_name: "",
+        admin_code: "",
+        legalitas: "SHM",
+        tapak: "PERSEGI",
+        row_jalan: 6.0,
+        keterangan: "Input langsung dari peta GIS",
+      } as unknown as MarketComparableEntity);
+      setIsModalOpen(true);
+      toast.info(`Menambahkan titik data baru di koordinat: ${coord.latitude.toFixed(5)}, ${coord.longitude.toFixed(5)}`);
+    },
+    [toast]
+  );
+
   // Refresh properties from server API
   const refreshProperties = async () => {
     try {
@@ -183,6 +217,7 @@ export function UnifiedWorkstationClient({
                 }));
                 toast.info(`Koordinat target diubah: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
               }}
+              onAddPointOfInterest={handleAddPointOfInterest}
               onToggleSelectComp={handleToggleSelectComp}
               onInspectComp={handleInspectComp}
             />

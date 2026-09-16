@@ -68,9 +68,9 @@ export function ValuationMap({
           "carto-positron-source": {
             type: "raster",
             tiles: [
-              "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-              "https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-              "https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+              `https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
+              `https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
+              `https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
             ],
             tileSize: 256,
             maxzoom: 20,
@@ -78,9 +78,9 @@ export function ValuationMap({
           "carto-dark-source": {
             type: "raster",
             tiles: [
-              "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
-              "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
-              "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+              `https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
+              `https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
+              `https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
             ],
             tileSize: 256,
             maxzoom: 20,
@@ -88,9 +88,9 @@ export function ValuationMap({
           "carto-voyager-source": {
             type: "raster",
             tiles: [
-              `https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${CARTO_KEY}`,
-              `https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${CARTO_KEY}`,
-              `https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${CARTO_KEY}`,
+              `https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
+              `https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
+              `https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
             ],
             tileSize: 256,
             maxzoom: 20,

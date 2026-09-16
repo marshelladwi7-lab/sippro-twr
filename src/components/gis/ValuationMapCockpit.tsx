@@ -20,11 +20,14 @@ import {
   Globe,
   Compass,
   Layers,
+  PlusCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { useTheme } from "@/lib/theme/theme-context";
+
+const CARTO_KEY = "cb1_3ky1_1_8c915f3c2e662b82a87023cb";
 
 function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
@@ -48,6 +51,7 @@ export interface ValuationMapCockpitProps {
   onToggleSelectComp?: (comp: MarketComparableEntity) => void;
   onInspectComp: (comp: MarketComparableEntity) => void;
   onSubjectCoordinateChange?: (lat: number, lng: number) => void;
+  onAddPointOfInterest?: (coord: { latitude: number; longitude: number }) => void;
   radiusKm?: RadiusKmOption;
   onRadiusKmChange?: (radiusKm: RadiusKmOption) => void;
   className?: string;
@@ -110,6 +114,7 @@ export function ValuationMapCockpit({
   onToggleSelectComp,
   onInspectComp,
   onSubjectCoordinateChange,
+  onAddPointOfInterest,
   radiusKm: externalRadiusKm,
   onRadiusKmChange,
   className,
@@ -118,7 +123,6 @@ export function ValuationMapCockpit({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const subjectMarkerRef = useRef<MapMarker | null>(null);
-  const compMarkersRef = useRef<MapMarker[]>([]);
 
   // Basemap state: defaults to dark or positron based on active theme
   const [basemap, setBasemap] = useState<BasemapMode>(theme === "dark" ? "dark" : "positron");
@@ -127,6 +131,20 @@ export function ValuationMapCockpit({
 
   const [activePopupComp, setActivePopupComp] =
     useState<MarketComparableEntity | null>(null);
+
+  // Add Point of Interest (POI) Mode
+  const [isAddMode, setIsAddMode] = useState(false);
+  const isAddModeRef = useRef(isAddMode);
+  isAddModeRef.current = isAddMode;
+
+  const onAddPointOfInterestRef = useRef(onAddPointOfInterest);
+  onAddPointOfInterestRef.current = onAddPointOfInterest;
+
+  const propertiesRef = useRef(properties);
+  propertiesRef.current = properties;
+
+  const onSelectCompRef = useRef(onSelectComp);
+  onSelectCompRef.current = onSelectComp;
 
   // Sync basemap default when site theme changes, unless user explicitly selected satellite/voyager
   useEffect(() => {
@@ -141,6 +159,12 @@ export function ValuationMapCockpit({
     setInternalRadiusKm(r);
     onRadiusKmChange?.(r);
   };
+
+  // Update cursor when isAddMode changes
+  useEffect(() => {
+    if (!mapRef.current) return;
+    mapRef.current.getCanvas().style.cursor = isAddMode ? "crosshair" : "";
+  }, [isAddMode]);
 
   // Initialize Map with Watermark-Free Carto and Esri Satellite
   useEffect(() => {
@@ -160,9 +184,9 @@ export function ValuationMapCockpit({
           "carto-positron": {
             type: "raster",
             tiles: [
-              "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-              "https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-              "https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+              `https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
+              `https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
+              `https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
             ],
             tileSize: 256,
             maxzoom: 20,
@@ -170,9 +194,9 @@ export function ValuationMapCockpit({
           "carto-dark": {
             type: "raster",
             tiles: [
-              "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
-              "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
-              "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+              `https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
+              `https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
+              `https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
             ],
             tileSize: 256,
             maxzoom: 20,
@@ -188,9 +212,9 @@ export function ValuationMapCockpit({
           "carto-voyager": {
             type: "raster",
             tiles: [
-              "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
-              "https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
-              "https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+              `https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
+              `https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
+              `https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
             ],
             tileSize: 256,
             maxzoom: 20,
@@ -282,6 +306,123 @@ export function ValuationMapCockpit({
           "line-opacity": 0.8,
         },
       });
+
+      // GeoJSON source for 1,511+ comparables (GPU accelerated WebGL for 60 FPS)
+      map.addSource("comparables-source", {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: [],
+        },
+      });
+
+      // Halo layer (outer ring for selected or in-radius)
+      map.addLayer({
+        id: "comparables-halo",
+        type: "circle",
+        source: "comparables-source",
+        paint: {
+          "circle-radius": [
+            "case",
+            ["==", ["get", "isSelected"], true],
+            11,
+            ["==", ["get", "isWithinRadius"], true],
+            9,
+            6,
+          ],
+          "circle-color": [
+            "case",
+            ["==", ["get", "isSelected"], true],
+            "#10b981",
+            ["==", ["get", "isWithinRadius"], true],
+            "#0284c7",
+            "#64748b",
+          ],
+          "circle-opacity": [
+            "case",
+            ["==", ["get", "isSelected"], true],
+            0.45,
+            ["==", ["get", "isWithinRadius"], true],
+            0.3,
+            0.15,
+          ],
+        },
+      });
+
+      // Point core layer
+      map.addLayer({
+        id: "comparables-points",
+        type: "circle",
+        source: "comparables-source",
+        paint: {
+          "circle-radius": [
+            "case",
+            ["==", ["get", "isSelected"], true],
+            7.5,
+            ["==", ["get", "isWithinRadius"], true],
+            6,
+            4.5,
+          ],
+          "circle-color": [
+            "case",
+            ["==", ["get", "isSelected"], true],
+            "#059669",
+            ["==", ["get", "isWithinRadius"], true],
+            "#0284c7",
+            "#475569",
+          ],
+          "circle-stroke-width": [
+            "case",
+            ["==", ["get", "isSelected"], true],
+            2.5,
+            1.5,
+          ],
+          "circle-stroke-color": "#ffffff",
+        },
+      });
+
+      // Cursor pointer on comparable hover
+      map.on("mouseenter", "comparables-points", () => {
+        map.getCanvas().style.cursor = isAddModeRef.current ? "crosshair" : "pointer";
+      });
+      map.on("mouseleave", "comparables-points", () => {
+        map.getCanvas().style.cursor = isAddModeRef.current ? "crosshair" : "";
+      });
+
+      // Click on comparable point
+      map.on("click", "comparables-points", (e) => {
+        if (isAddModeRef.current) return;
+        if (e.features && e.features[0]) {
+          const compId = e.features[0].properties?.id;
+          const found = propertiesRef.current.find((p) => p.id === compId);
+          if (found) {
+            setActivePopupComp(found);
+            onSelectCompRef.current?.(found);
+          }
+        }
+      });
+    });
+
+    // Click on map to add POI
+    map.on("click", (e) => {
+      if (isAddModeRef.current && onAddPointOfInterestRef.current) {
+        onAddPointOfInterestRef.current({
+          latitude: Number(e.lngLat.lat.toFixed(6)),
+          longitude: Number(e.lngLat.lng.toFixed(6)),
+        });
+        setIsAddMode(false);
+      }
+    });
+
+    // Right-click (contextmenu) anywhere on map to add POI
+    map.on("contextmenu", (e) => {
+      e.preventDefault();
+      if (onAddPointOfInterestRef.current) {
+        onAddPointOfInterestRef.current({
+          latitude: Number(e.lngLat.lat.toFixed(6)),
+          longitude: Number(e.lngLat.lng.toFixed(6)),
+        });
+      }
     });
 
     mapRef.current = map;
@@ -329,7 +470,7 @@ export function ValuationMapCockpit({
     }
   }, [subjectLocation.latitude, subjectLocation.longitude, activeRadiusKm]);
 
-  // Update Draggable Subject Marker
+  // Update Draggable Subject Marker (Single marker, zero DOM thrashing)
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -370,20 +511,20 @@ export function ValuationMapCockpit({
     subjectMarkerRef.current = marker;
   }, [subjectLocation.latitude, subjectLocation.longitude, onSubjectCoordinateChange]);
 
-  // Update Comparable Markers
+  // Update Comparable Points via WebGL GPU source (Instant 60 FPS, 0 DOM overhead)
   useEffect(() => {
     if (!mapRef.current) return;
     const map = mapRef.current;
+    const source = map.getSource("comparables-source") as GeoJSONSource | undefined;
+    if (!source) return;
 
-    compMarkersRef.current.forEach((m) => m.remove());
-    compMarkersRef.current = [];
+    const features: GeoJSON.Feature<GeoJSON.Point>[] = [];
 
-    properties.forEach((comp) => {
-      if (!comp.latitude || !comp.longitude) return;
+    for (let i = 0; i < properties.length; i++) {
+      const comp = properties[i];
+      if (!comp.latitude || !comp.longitude) continue;
 
       const isSelected = selectedCompIds.includes(comp.id);
-      const isKosong = comp.jenis_properti === "TANAH_KOSONG";
-
       const distMeters = calculateDistanceMeters(
         subjectLocation.latitude,
         subjectLocation.longitude,
@@ -392,52 +533,27 @@ export function ValuationMapCockpit({
       );
       const isWithinRadius = distMeters <= activeRadiusKm * 1000;
 
-      const markerEl = document.createElement("div");
-      markerEl.className = "cursor-pointer group relative select-none transition-transform duration-150 hover:scale-115";
-
-      const badgeColor = isSelected
-        ? "bg-emerald-600 border-white text-white shadow-emerald-500/40 ring-2 ring-emerald-400"
-        : isWithinRadius
-        ? "bg-sky-600 border-white text-white shadow-sky-500/30"
-        : "bg-slate-600/90 border-slate-300 text-slate-200 opacity-70";
-
-      markerEl.innerHTML = `
-        <div class="relative flex flex-col items-center">
-          <div class="w-6 h-6 rounded-full border-2 shadow-lg flex items-center justify-center font-mono font-bold text-[9px] ${badgeColor} transition-all">
-            ${comp.legacy_no ? comp.legacy_no : comp.id.slice(-2)}
-          </div>
-          ${
-            isSelected
-              ? `<div class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border border-white"></div>`
-              : ""
-          }
-          <div class="hidden group-hover:flex absolute top-7 z-30 px-2 py-1 rounded bg-slate-900/95 text-white text-[10px] font-sans shadow-xl border border-slate-700 whitespace-nowrap flex-col items-center pointer-events-none">
-            <span class="font-bold line-clamp-1">${comp.alamat || "Pembanding"}</span>
-            <span class="text-emerald-400 font-mono font-semibold">${
-              comp.kisaran_nilai_tanah
-                ? `Rp ${comp.kisaran_nilai_tanah.toLocaleString("id-ID")}/m²`
-                : "Belum Ada Nilai"
-            }</span>
-            <span class="text-slate-400 text-[9px]">Jarak: ${
-              distMeters < 1000
-                ? `${distMeters} m`
-                : `${(distMeters / 1000).toFixed(2)} km`
-            }</span>
-          </div>
-        </div>
-      `;
-
-      markerEl.addEventListener("click", (e) => {
-        e.stopPropagation();
-        setActivePopupComp(comp);
-        onSelectComp?.(comp);
+      features.push({
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [comp.longitude, comp.latitude],
+        },
+        properties: {
+          id: comp.id,
+          legacy_no: comp.legacy_no || "",
+          alamat: comp.alamat || "Data Pembanding",
+          kisaran_nilai_tanah: comp.kisaran_nilai_tanah || 0,
+          isSelected,
+          isWithinRadius,
+          distMeters,
+        },
       });
+    }
 
-      const m = new maplibregl.Marker({ element: markerEl })
-        .setLngLat([comp.longitude, comp.latitude])
-        .addTo(map);
-
-      compMarkersRef.current.push(m);
+    source.setData({
+      type: "FeatureCollection",
+      features,
     });
   }, [
     properties,
@@ -445,7 +561,6 @@ export function ValuationMapCockpit({
     activeRadiusKm,
     subjectLocation.latitude,
     subjectLocation.longitude,
-    onSelectComp,
   ]);
 
   const handleRecenter = () => {
@@ -638,7 +753,40 @@ export function ValuationMapCockpit({
           <Layers className="w-3.5 h-3.5 text-sky-500" />
           <span>Lihat Semua</span>
         </button>
+
+        {/* Tambah Titik Data (POI) Button */}
+        {onAddPointOfInterest && (
+          <button
+            type="button"
+            onClick={() => setIsAddMode((prev) => !prev)}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-xl backdrop-blur-md border shadow-md text-[11px] font-semibold transition-all cursor-pointer",
+              isAddMode
+                ? "bg-amber-500 text-slate-950 border-amber-400 ring-2 ring-amber-400/50 shadow-amber-500/20 font-bold"
+                : "bg-white/95 dark:bg-slate-900/95 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+            )}
+            title="Tambah Titik Data Baru di Peta (atau Klik Kanan di peta)"
+          >
+            <PlusCircle className={cn("w-3.5 h-3.5", isAddMode ? "text-slate-950" : "text-amber-500")} />
+            <span>{isAddMode ? "Mode Tambah Aktif" : "+ Titik Data"}</span>
+          </button>
+        )}
       </div>
+
+      {/* Floating Active POI Mode Alert Banner */}
+      {isAddMode && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 bg-amber-500 text-slate-950 px-4 py-2 rounded-xl shadow-xl font-bold text-xs flex items-center gap-2.5 border border-amber-300 animate-in fade-in slide-in-from-top-2">
+          <MapPin className="w-4 h-4 text-slate-950" />
+          <span>Klik lokasi mana saja pada peta untuk mendaftarkan titik baru (atau Klik Kanan)</span>
+          <button
+            type="button"
+            onClick={() => setIsAddMode(false)}
+            className="ml-2 bg-slate-950 hover:bg-slate-800 text-white px-2.5 py-0.5 rounded-lg text-[11px] transition-all cursor-pointer"
+          >
+            Batal
+          </button>
+        </div>
+      )}
 
       {/* Bottom Left Legend & Instruction */}
       <div className="absolute bottom-3 left-3 z-10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-md text-[11px] text-slate-600 dark:text-slate-300 flex flex-wrap items-center gap-3.5 pointer-events-none">
