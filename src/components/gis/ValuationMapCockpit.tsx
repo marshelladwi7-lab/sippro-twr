@@ -19,6 +19,7 @@ import {
   Maximize2,
   Globe,
   Compass,
+  Layers,
 } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { clsx, type ClassValue } from "clsx";
@@ -146,12 +147,13 @@ export function ValuationMapCockpit({
     if (!mapContainerRef.current || mapRef.current) return;
 
     const initialCenter: [number, number] = [
-      subjectLocation.longitude || 107.173722,
-      subjectLocation.latitude || -6.395972,
+      subjectLocation.longitude || 115.141356,
+      subjectLocation.latitude || -8.846376,
     ];
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
+      attributionControl: false,
       style: {
         version: 8,
         sources: {
@@ -163,7 +165,7 @@ export function ValuationMapCockpit({
               "https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
             ],
             tileSize: 256,
-            attribution: "&copy; CARTO &copy; OpenStreetMap",
+            maxzoom: 20,
           },
           "carto-dark": {
             type: "raster",
@@ -173,7 +175,7 @@ export function ValuationMapCockpit({
               "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
             ],
             tileSize: 256,
-            attribution: "&copy; CARTO &copy; OpenStreetMap",
+            maxzoom: 20,
           },
           "esri-satellite": {
             type: "raster",
@@ -181,7 +183,6 @@ export function ValuationMapCockpit({
               "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
             ],
             tileSize: 256,
-            attribution: "&copy; Esri &mdash; World Imagery",
             maxzoom: 19,
           },
           "carto-voyager": {
@@ -192,7 +193,6 @@ export function ValuationMapCockpit({
               "https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
             ],
             tileSize: 256,
-            attribution: "&copy; CARTO &copy; OpenStreetMap",
             maxzoom: 20,
           },
         },
@@ -240,7 +240,7 @@ export function ValuationMapCockpit({
         ],
       },
       center: initialCenter,
-      zoom: 13.5,
+      zoom: 12.5,
     });
 
     map.addControl(
@@ -579,6 +579,64 @@ export function ValuationMapCockpit({
         >
           <Crosshair className="w-3.5 h-3.5 text-emerald-500" />
           <span>Ke Target</span>
+        </button>
+
+        {/* Region Jumper */}
+        <div className="flex items-center rounded-xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 shadow-md p-1 text-xs">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 flex items-center gap-1">
+            <MapPin className="w-3 h-3 text-emerald-500" />
+            Wilayah:
+          </span>
+          <select
+            aria-label="Pilih Wilayah Kluster Data"
+            onChange={(e) => {
+              const val = e.target.value;
+              const map = mapRef.current;
+              if (!map) return;
+              if (val === "bali") {
+                map.flyTo({ center: [115.141356, -8.846376], zoom: 12.5 });
+                onSubjectCoordinateChange?.(-8.846376, 115.141356);
+              } else if (val === "jabodetabek") {
+                map.flyTo({ center: [106.8456, -6.2088], zoom: 11.5 });
+                onSubjectCoordinateChange?.(-6.2088, 106.8456);
+              } else if (val === "bekasi") {
+                map.flyTo({ center: [107.173722, -6.395972], zoom: 12 });
+                onSubjectCoordinateChange?.(-6.395972, 107.173722);
+              } else if (val === "bandung") {
+                map.flyTo({ center: [107.6191, -6.9175], zoom: 12 });
+                onSubjectCoordinateChange?.(-6.9175, 107.6191);
+              } else if (val === "surabaya") {
+                map.flyTo({ center: [112.7521, -7.2575], zoom: 12 });
+                onSubjectCoordinateChange?.(-7.2575, 112.7521);
+              } else if (val === "all") {
+                map.fitBounds([[95.3, -8.87], [125.0, 5.89]], { padding: 40 });
+              }
+            }}
+            className="bg-transparent text-[11px] font-bold text-slate-700 dark:text-slate-200 outline-none cursor-pointer pr-2 py-0.5"
+            defaultValue="bali"
+          >
+            <option value="bali" className="dark:bg-slate-900">🏝️ Bali (984 Data)</option>
+            <option value="jabodetabek" className="dark:bg-slate-900">🏙️ DKI Jakarta (115 Data)</option>
+            <option value="bekasi" className="dark:bg-slate-900">🏭 Bekasi (52 Data)</option>
+            <option value="bandung" className="dark:bg-slate-900">☕ Bandung (37 Data)</option>
+            <option value="surabaya" className="dark:bg-slate-900">⚓ Surabaya (24 Data)</option>
+            <option value="all" className="dark:bg-slate-900">🗺️ Seluruh Indonesia (1.511 Data)</option>
+          </select>
+        </div>
+
+        {/* Fit All Bounds Button */}
+        <button
+          type="button"
+          onClick={() => {
+            const map = mapRef.current;
+            if (!map) return;
+            map.fitBounds([[95.3, -8.87], [125.0, 5.89]], { padding: 40 });
+          }}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 shadow-md text-[11px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer"
+          title="Tampilkan Seluruh 1.511 Titik Data di Indonesia"
+        >
+          <Layers className="w-3.5 h-3.5 text-sky-500" />
+          <span>Lihat Semua</span>
         </button>
       </div>
 

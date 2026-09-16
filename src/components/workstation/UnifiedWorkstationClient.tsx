@@ -54,13 +54,21 @@ export function UnifiedWorkstationClient({
   // Database Properties
   const [properties, setProperties] = useState<MarketComparableEntity[]>(initialProperties);
 
-  // Target Valuation Property State
+  // Target Valuation Property State (Default to cluster in Bali where 984 data points exist)
+  const defaultProp = initialProperties.find((p) => p.latitude && p.longitude && p.latitude !== 0) || {
+    alamat: "Kawasan Pecatu, Kuta Selatan, Kab. Badung, Bali",
+    latitude: -8.846376,
+    longitude: 115.141356,
+    luas_tanah: 500,
+    luas_bangunan: 250,
+  };
+
   const [subjectData, setSubjectData] = useState({
-    alamat: "Jl. Raya Cikarang Cibarusah No. 45, Cikarang Selatan, Bekasi",
-    latitude: -6.395972,
-    longitude: 107.173722,
-    luasTanah: 350,
-    luasBangunan: 220,
+    alamat: defaultProp.alamat || "Kawasan Pecatu, Kuta Selatan, Kab. Badung, Bali",
+    latitude: defaultProp.latitude || -8.846376,
+    longitude: defaultProp.longitude || 115.141356,
+    luasTanah: defaultProp.luas_tanah || 500,
+    luasBangunan: defaultProp.luas_bangunan || 250,
     legalitas: "SHM" as LegalitasEnum,
     tapak: "PERSEGI" as TapakShapeEnum,
     rowJalan: 8.0,

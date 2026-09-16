@@ -61,6 +61,7 @@ export function ValuationMap({
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
+      attributionControl: false,
       style: {
         version: 8,
         sources: {
@@ -72,7 +73,6 @@ export function ValuationMap({
               "https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
             ],
             tileSize: 256,
-            attribution: "&copy; CARTO &copy; OpenStreetMap",
             maxzoom: 20,
           },
           "carto-dark-source": {
@@ -83,7 +83,6 @@ export function ValuationMap({
               "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
             ],
             tileSize: 256,
-            attribution: "&copy; CARTO &copy; OpenStreetMap",
             maxzoom: 20,
           },
           "carto-voyager-source": {
@@ -94,7 +93,6 @@ export function ValuationMap({
               `https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${CARTO_KEY}`,
             ],
             tileSize: 256,
-            attribution: "&copy; CARTO &copy; OpenStreetMap",
             maxzoom: 20,
           },
           "esri-satellite-source": {
@@ -103,7 +101,6 @@ export function ValuationMap({
               "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
             ],
             tileSize: 256,
-            attribution: "&copy; Esri &mdash; World Imagery",
             maxzoom: 19,
           },
         },

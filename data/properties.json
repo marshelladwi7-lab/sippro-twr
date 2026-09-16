@@ -1,33 +1,5 @@
 [
   {
-    "id": "imported-1789462901991-0",
-    "legacy_no": 1,
-    "jenis_properti": "TANAH_BANGUNAN",
-    "alamat": "",
-    "provinsi": "",
-    "kota_kab": "",
-    "kecamatan": "",
-    "desa_kelurahan": "",
-    "latitude": 0,
-    "longitude": 0,
-    "luas_tanah": 0,
-    "luas_bangunan": 0,
-    "kisaran_nilai_tanah": null,
-    "harga_penawaran": null,
-    "harga_transaksi": null,
-    "tanggal_data": "2026-09-15",
-    "surveyor_name": null,
-    "reviewer_name": null,
-    "admin_code": null,
-    "legalitas": "SHM",
-    "tapak": "PERSEGI",
-    "row_jalan": 6,
-    "keterangan": null,
-    "raw_metadata": {
-      "isOutlierArea": false
-    }
-  },
-  {
     "id": "imported-1789412200868-0",
     "legacy_no": 1,
     "jenis_properti": "TANAH_KOSONG",
