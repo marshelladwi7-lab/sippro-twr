@@ -81,6 +81,7 @@ export function ValuationMap({
       attributionControl: false,
       style: {
         version: 8,
+        glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
         sources: {
           "carto-positron-source": {
             type: "raster",
@@ -228,6 +229,22 @@ export function ValuationMap({
             1.5,
           ],
           "circle-stroke-color": "#ffffff",
+        },
+      });
+
+      // Legacy number labels inside pin circles (matches authentic UI)
+      map.addLayer({
+        id: "properties-labels",
+        type: "symbol",
+        source: "properties-source",
+        layout: {
+          "text-field": ["to-string", ["get", "legacy_no"]],
+          "text-size": 8,
+          "text-allow-overlap": true,
+          "text-ignore-placement": true,
+        },
+        paint: {
+          "text-color": "#ffffff",
         },
       });
 
