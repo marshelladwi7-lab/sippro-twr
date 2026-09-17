@@ -5,13 +5,21 @@ import { AUTH_COOKIE_NAME, decodeSession } from "@/lib/auth/session";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Protect /workstation route and subroutes
-  if (pathname.startsWith("/workstation")) {
-    const sessionToken = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+  const sessionToken = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+  const session = sessionToken ? decodeSession(sessionToken) : null;
 
-    if (!sessionToken || !decodeSession(sessionToken)) {
+  // If already logged in and visiting /login, redirect to /
+  if (pathname === "/login") {
+    if (session) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+    return NextResponse.next();
+  }
+
+  // Protect root page /
+  if (pathname === "/") {
+    if (!session) {
       const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("from", pathname);
       return NextResponse.redirect(loginUrl);
     }
   }
@@ -20,5 +28,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/workstation/:path*"],
+  matcher: ["/", "/login"],
 };

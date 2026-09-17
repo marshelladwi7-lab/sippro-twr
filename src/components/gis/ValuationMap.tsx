@@ -12,9 +12,7 @@ interface ValuationMapProps {
   onEditProperty: (property: MarketComparableEntity) => void;
 }
 
-const CARTO_KEY = process.env.NEXT_PUBLIC_CARTO_KEY || "cb1_3ky1_1_8c915f3c2e662b82a87023cb";
-
-type BaseLayerId = "positron" | "dark" | "satellite" | "voyager";
+type BaseLayerId = "street" | "satellite" | "dark" | "light";
 
 export function ValuationMap({
   properties,
@@ -30,7 +28,7 @@ export function ValuationMap({
   const tempMarkerRef = useRef<Marker | null>(null);
 
   const [activePopupProperty, setActivePopupProperty] = useState<MarketComparableEntity | null>(null);
-  const [activeBaseLayer, setActiveBaseLayer] = useState<BaseLayerId>("voyager");
+  const [activeBaseLayer, setActiveBaseLayer] = useState<BaseLayerId>("street");
   const [isAddMode, setIsAddMode] = useState(false);
   const [hoverCoordinate, setHoverCoordinate] = useState<{ lat: number; lng: number } | null>(null);
 
@@ -53,10 +51,10 @@ export function ValuationMap({
     if (!map) return;
 
     const layerMapping: Record<BaseLayerId, string> = {
-      positron: "carto-positron-layer",
-      dark: "carto-dark-layer",
+      street: "esri-street-layer",
       satellite: "esri-satellite-layer",
-      voyager: "carto-voyager-layer",
+      dark: "esri-dark-layer",
+      light: "esri-light-layer",
     };
 
     Object.entries(layerMapping).forEach(([key, layerId]) => {
@@ -88,35 +86,13 @@ export function ValuationMap({
         version: 8,
         glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
         sources: {
-          "carto-positron-source": {
+          "esri-street-source": {
             type: "raster",
             tiles: [
-              `https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
-              `https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
-              `https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
+              "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
             ],
             tileSize: 256,
-            maxzoom: 20,
-          },
-          "carto-dark-source": {
-            type: "raster",
-            tiles: [
-              `https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
-              `https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
-              `https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
-            ],
-            tileSize: 256,
-            maxzoom: 20,
-          },
-          "carto-voyager-source": {
-            type: "raster",
-            tiles: [
-              `https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
-              `https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
-              `https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?api_key=${CARTO_KEY}`,
-            ],
-            tileSize: 256,
-            maxzoom: 20,
+            maxzoom: 19,
           },
           "esri-satellite-source": {
             type: "raster",
@@ -126,23 +102,31 @@ export function ValuationMap({
             tileSize: 256,
             maxzoom: 19,
           },
+          "esri-dark-source": {
+            type: "raster",
+            tiles: [
+              "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+            ],
+            tileSize: 256,
+            maxzoom: 19,
+          },
+          "esri-light-source": {
+            type: "raster",
+            tiles: [
+              "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+            ],
+            tileSize: 256,
+            maxzoom: 19,
+          },
         },
         layers: [
           {
-            id: "carto-positron-layer",
+            id: "esri-street-layer",
             type: "raster",
-            source: "carto-positron-source",
+            source: "esri-street-source",
             layout: { visibility: "visible" },
             minzoom: 0,
-            maxzoom: 20,
-          },
-          {
-            id: "carto-dark-layer",
-            type: "raster",
-            source: "carto-dark-source",
-            layout: { visibility: "none" },
-            minzoom: 0,
-            maxzoom: 20,
+            maxzoom: 19,
           },
           {
             id: "esri-satellite-layer",
@@ -153,12 +137,20 @@ export function ValuationMap({
             maxzoom: 19,
           },
           {
-            id: "carto-voyager-layer",
+            id: "esri-dark-layer",
             type: "raster",
-            source: "carto-voyager-source",
+            source: "esri-dark-source",
             layout: { visibility: "none" },
             minzoom: 0,
-            maxzoom: 20,
+            maxzoom: 19,
+          },
+          {
+            id: "esri-light-layer",
+            type: "raster",
+            source: "esri-light-source",
+            layout: { visibility: "none" },
+            minzoom: 0,
+            maxzoom: 19,
           },
         ],
       },
@@ -449,43 +441,19 @@ export function ValuationMap({
           🗺️ Semua Titik
         </button>
 
-        {/* Base Layer Switcher (Voyager, Terang, Gelap, Satelit) */}
+        {/* Base Layer Switcher (Jalan, Satelit, Gelap, Terang) */}
         <div className="bg-slate-900/95 backdrop-blur-md p-1 rounded-xl shadow-lg border border-slate-800 flex items-center space-x-1 text-xs">
           <button
             type="button"
-            onClick={() => handleLayerChange("voyager")}
+            onClick={() => handleLayerChange("street")}
             className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
-              activeBaseLayer === "voyager"
+              activeBaseLayer === "street"
                 ? "bg-slate-800 text-white shadow-xs border border-slate-700"
                 : "text-slate-400 hover:text-white hover:bg-slate-800/40"
             }`}
-            title="CARTO Voyager"
+            title="Peta Jalan Esri World Street Map"
           >
-            Voyager
-          </button>
-          <button
-            type="button"
-            onClick={() => handleLayerChange("positron")}
-            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
-              activeBaseLayer === "positron"
-                ? "bg-slate-800 text-white shadow-xs border border-slate-700"
-                : "text-slate-400 hover:text-white hover:bg-slate-800/40"
-            }`}
-            title="CARTO Positron (Terang)"
-          >
-            Terang
-          </button>
-          <button
-            type="button"
-            onClick={() => handleLayerChange("dark")}
-            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
-              activeBaseLayer === "dark"
-                ? "bg-slate-800 text-white shadow-xs border border-slate-700"
-                : "text-slate-400 hover:text-white hover:bg-slate-800/40"
-            }`}
-            title="CARTO Dark Matter (Gelap)"
-          >
-            Gelap
+            Jalan
           </button>
           <button
             type="button"
@@ -498,6 +466,30 @@ export function ValuationMap({
             title="Foto Satelit Esri World Imagery"
           >
             Satelit
+          </button>
+          <button
+            type="button"
+            onClick={() => handleLayerChange("dark")}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
+              activeBaseLayer === "dark"
+                ? "bg-slate-800 text-white shadow-xs border border-slate-700"
+                : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+            }`}
+            title="Peta Gelap Esri Dark Canvas"
+          >
+            Gelap
+          </button>
+          <button
+            type="button"
+            onClick={() => handleLayerChange("light")}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
+              activeBaseLayer === "light"
+                ? "bg-slate-800 text-white shadow-xs border border-slate-700"
+                : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+            }`}
+            title="Peta Terang Esri Light Canvas"
+          >
+            Terang
           </button>
         </div>
       </div>
