@@ -237,11 +237,11 @@ export function ValuationMap({
         const tempEl = document.createElement("div");
         tempEl.innerHTML = `
           <div class="flex flex-col items-center animate-bounce">
-            <div class="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-mono font-bold shadow-lg border border-white whitespace-nowrap mb-1">
+            <div class="px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[10px] font-mono font-bold shadow-lg border border-amber-300 whitespace-nowrap mb-1">
               ${lat.toFixed(5)}, ${lng.toFixed(5)}
             </div>
-            <div class="w-7 h-7 rounded-full bg-emerald-500 border-2 border-white shadow-xl flex items-center justify-center text-white ring-2 ring-emerald-300">
-              ➕
+            <div class="w-7 h-7 rounded-full bg-amber-400 border-2 border-white shadow-xl flex items-center justify-center text-slate-950 font-bold ring-2 ring-amber-300">
+              📍
             </div>
           </div>
         `;
@@ -338,12 +338,12 @@ export function ValuationMap({
         const badge = current.el.querySelector(".pin-badge");
         if (badge) {
           badge.className =
-            "pin-badge w-6 h-6 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[9px] font-black text-white transition-all bg-rose-600 ring-2 ring-rose-400 scale-125 z-20 shadow-rose-500/40";
+            "pin-badge w-6 h-6 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[9px] font-black text-slate-950 transition-all bg-amber-400 ring-2 ring-amber-300 scale-125 z-20 shadow-amber-500/50";
         }
         const pingWrapper = current.el.querySelector(".relative");
         if (pingWrapper && !current.el.querySelector(".animate-ping")) {
           const pingDiv = document.createElement("div");
-          pingDiv.className = "absolute w-8 h-8 rounded-full bg-rose-500/30 animate-ping";
+          pingDiv.className = "absolute w-8 h-8 rounded-full bg-amber-400/30 animate-ping";
           pingWrapper.prepend(pingDiv);
         }
       }
@@ -515,7 +515,7 @@ export function ValuationMap({
                 {activePopupProperty.desa_kelurahan ? `${activePopupProperty.desa_kelurahan}, ` : ""}
                 {activePopupProperty.kecamatan}, {activePopupProperty.kota_kab}
               </p>
-              <div className="text-[11px] font-mono text-emerald-400/90 flex items-center gap-1.5 mt-1 bg-slate-950/60 px-2 py-0.5 rounded-md border border-slate-800/80 w-fit">
+              <div className="text-[11px] font-mono text-amber-400 flex items-center gap-1.5 mt-1 bg-slate-950/60 px-2 py-0.5 rounded-md border border-slate-800/80 w-fit">
                 <span>📍 WGS84:</span>
                 <span className="font-semibold">{activePopupProperty.latitude.toFixed(6)}, {activePopupProperty.longitude.toFixed(6)}</span>
               </div>
@@ -531,7 +531,7 @@ export function ValuationMap({
           <div className="grid grid-cols-2 gap-2 text-xs bg-slate-950/80 p-3 rounded-xl border border-slate-800/80 font-mono">
             <div>
               <span className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold block font-sans">Kisaran Nilai Tanah</span>
-              <span className="font-bold text-emerald-400 text-sm">
+              <span className="font-bold text-amber-400 text-sm">
                 {activePopupProperty.kisaran_nilai_tanah
                   ? `Rp ${activePopupProperty.kisaran_nilai_tanah.toLocaleString("id-ID")}/m²`
                   : "Belum Dinilai"}
@@ -566,7 +566,7 @@ export function ValuationMap({
           <div className="flex items-center space-x-2 pt-1">
             <button
               onClick={() => onEditProperty(activePopupProperty)}
-              className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-xs active:scale-[0.98] cursor-pointer flex items-center justify-center space-x-1.5"
+              className="flex-1 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold transition-all shadow-md active:scale-[0.98] cursor-pointer flex items-center justify-center space-x-1.5"
             >
               <span>✏️</span>
               <span>Edit Data</span>
@@ -585,7 +585,7 @@ export function ValuationMap({
 
       {/* Bottom Right Live Cursor Coordinate Display */}
       <div className="absolute bottom-3 right-3 bg-slate-900/95 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-md border border-slate-800 text-[11px] font-mono text-slate-400 z-10 hidden sm:flex items-center space-x-2">
-        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
         <span>
           {hoverCoordinate
             ? `Lintang: ${hoverCoordinate.lat.toFixed(6)} | Bujur: ${hoverCoordinate.lng.toFixed(6)}`

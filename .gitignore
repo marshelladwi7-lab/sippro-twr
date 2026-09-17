@@ -33,3 +33,4 @@ Thumbs.db
 
 # Brain & Agent System Temp
 .gemini/
+tsconfig.tsbuildinfo

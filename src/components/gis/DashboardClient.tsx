@@ -7,6 +7,9 @@ import { PropertyModal } from "@/components/gis/PropertyModal";
 import { BatchExcelUploader } from "@/components/excel/BatchExcelUploader";
 import { MarketComparableEntity } from "@/types/database";
 import { TwrLogo } from "@/components/ui/TwrLogo";
+import { ValuationAnalyticsDashboard } from "@/components/gis/ValuationAnalyticsDashboard";
+import { UserManagementModal } from "@/components/auth/UserManagementModal";
+import { useAuth } from "@/lib/auth/auth-context";
 
 // Lazy-load MapLibre GL on client-side only (prevents SSR hydration crash)
 const ValuationMap = dynamic(
@@ -15,8 +18,8 @@ const ValuationMap = dynamic(
     ssr: false,
     loading: () => (
       <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900 text-slate-400 text-xs min-h-[450px]">
-        <div className="w-6 h-6 border-2 border-rose-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-        <span>Memuat Peta Spasial (OpenStreetMap & Esri)...</span>
+        <div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+        <span>Memuat Peta Spasial (Esri & OpenStreetMap)...</span>
       </div>
     ),
   }
@@ -27,13 +30,15 @@ interface DashboardClientProps {
 }
 
 export function DashboardClient({ initialProperties }: DashboardClientProps) {
+  const { session } = useAuth();
   const [properties, setProperties] = useState<MarketComparableEntity[]>(initialProperties);
   const [selectedProperty, setSelectedProperty] = useState<MarketComparableEntity | null>(
     initialProperties.length > 0 ? initialProperties[0] : null
   );
   const [editingProperty, setEditingProperty] = useState<MarketComparableEntity | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"map" | "table" | "import">("map");
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"map" | "table" | "import" | "analytics">("map");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string>("ALL");
   const [filterRegion, setFilterRegion] = useState<string>("ALL");
@@ -168,20 +173,20 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
       <header className="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-5 py-2.5 flex items-center justify-between shadow-xl z-30 shrink-0">
         <div className="flex items-center space-x-3.5">
           <TwrLogo size="sm" showTagline={true} />
-          <span className="hidden md:inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-emerald-400 border border-slate-700">
-            SPI 106
+          <span className="hidden md:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 font-mono">
+            SPI 106 &amp; KEPI
           </span>
         </div>
 
         {/* Action Controls & Navigation */}
-        <div className="flex items-center space-x-2.5">
+        <div className="flex items-center space-x-2">
           {/* Segmented View Toggles */}
           <div className="bg-slate-950 p-1 rounded-xl border border-slate-800 flex space-x-1 text-xs">
             <button
               onClick={() => setViewMode("map")}
               className={`px-3 py-1.5 rounded-lg font-semibold transition-all flex items-center space-x-1.5 cursor-pointer ${
                 viewMode === "map"
-                  ? "bg-slate-800 text-white shadow-xs border border-slate-700"
+                  ? "bg-slate-800 text-amber-300 shadow-xs border border-slate-700"
                   : "text-slate-400 hover:text-white hover:bg-slate-800/40"
               }`}
             >
@@ -189,10 +194,21 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
               <span className="hidden md:inline">Peta Spasial</span>
             </button>
             <button
+              onClick={() => setViewMode("analytics")}
+              className={`px-3 py-1.5 rounded-lg font-semibold transition-all flex items-center space-x-1.5 cursor-pointer ${
+                viewMode === "analytics"
+                  ? "bg-slate-800 text-amber-300 shadow-xs border border-slate-700"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+              }`}
+            >
+              <span>📊</span>
+              <span className="hidden md:inline">Dashboard Analisis</span>
+            </button>
+            <button
               onClick={() => setViewMode("table")}
               className={`px-3 py-1.5 rounded-lg font-semibold transition-all flex items-center space-x-1.5 cursor-pointer ${
                 viewMode === "table"
-                  ? "bg-slate-800 text-white shadow-xs border border-slate-700"
+                  ? "bg-slate-800 text-amber-300 shadow-xs border border-slate-700"
                   : "text-slate-400 hover:text-white hover:bg-slate-800/40"
               }`}
             >
@@ -203,7 +219,7 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
               onClick={() => setViewMode("import")}
               className={`px-3 py-1.5 rounded-lg font-semibold transition-all flex items-center space-x-1.5 cursor-pointer ${
                 viewMode === "import"
-                  ? "bg-slate-800 text-white shadow-xs border border-slate-700"
+                  ? "bg-slate-800 text-amber-300 shadow-xs border border-slate-700"
                   : "text-slate-400 hover:text-white hover:bg-slate-800/40"
               }`}
             >
@@ -218,7 +234,7 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
               setEditingProperty(null);
               setIsModalOpen(true);
             }}
-            className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-xs active:scale-[0.98] flex items-center space-x-1.5 cursor-pointer"
+            className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold transition-all shadow-md shadow-amber-950/40 active:scale-[0.98] flex items-center space-x-1.5 cursor-pointer"
           >
             <span>➕</span>
             <span className="hidden sm:inline">Tambah Data</span>
@@ -243,6 +259,16 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
             <span>📍</span>
             <span>KML</span>
           </a>
+
+          {/* User & Role Management Button */}
+          <button
+            onClick={() => setIsUserModalOpen(true)}
+            title="Kelola Peran & Akses Pengguna (RBAC)"
+            className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-amber-300 hover:text-amber-200 rounded-xl text-xs font-semibold transition-all border border-amber-500/30 shadow-xs flex items-center space-x-1.5 cursor-pointer"
+          >
+            <span>👥</span>
+            <span className="hidden xl:inline">Tim &amp; Akses</span>
+          </button>
 
           {/* Logout Button */}
           <button
@@ -270,7 +296,7 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
           </div>
           <div className="hidden sm:flex items-center space-x-2">
             <span className="text-slate-500 text-[11px] font-medium">Rata-rata Nilai Tanah:</span>
-            <span className="font-extrabold text-emerald-400 font-mono text-sm">
+            <span className="font-extrabold text-amber-400 font-mono text-sm">
               Rp {metrics.avgPrice.toLocaleString("id-ID")}/m²
             </span>
           </div>
@@ -289,13 +315,28 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
         </div>
 
         <div className="flex items-center space-x-2 text-[11px] text-slate-400 shrink-0 font-mono">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+          <span className="w-2 h-2 rounded-full bg-amber-400 inline-block animate-pulse"></span>
           <span>Pangkalan Data Aktif ({properties.length.toLocaleString("id-ID")} Record)</span>
         </div>
       </div>
 
       {/* Main Content Workspace */}
       <div className="flex-1 flex overflow-hidden relative">
+        {/* VIEW 0: VALUATION & SPATIAL ANALYTICS DASHBOARD */}
+        {viewMode === "analytics" && (
+          <ValuationAnalyticsDashboard
+            properties={properties}
+            onSelectCityOnMap={(city) => {
+              setSearchTerm(city);
+              setViewMode("map");
+            }}
+            onSelectTypeOnMap={(type) => {
+              setFilterType(type);
+              setViewMode("map");
+            }}
+          />
+        )}
+
         {/* VIEW 1: IMPORT */}
         {viewMode === "import" && (
           <div className="flex-1 p-8 overflow-y-auto bg-slate-950 max-w-4xl mx-auto w-full">
@@ -339,7 +380,7 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
                     placeholder="Cari jalan, kelurahan, surveyor..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-9 pr-8 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
+                    className="w-full pl-9 pr-8 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-all"
                   />
                   <span className="absolute left-3 top-2.5 text-slate-500 text-xs">🔍</span>
                   {searchTerm && (
@@ -391,7 +432,7 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
                   <select
                     value={filterRegion}
                     onChange={(e) => setFilterRegion(e.target.value)}
-                    className="bg-slate-950 border border-slate-700/80 rounded-lg text-[11px] px-2.5 py-1 text-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 cursor-pointer"
+                    className="bg-slate-950 border border-slate-700/80 rounded-lg text-[11px] px-2.5 py-1 text-slate-300 focus:outline-none focus:ring-1 focus:ring-amber-500/30 cursor-pointer"
                   >
                     <option value="ALL">Semua Provinsi</option>
                     {regionOptions.map((r) => (
@@ -419,7 +460,7 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
                         onClick={() => setSelectedProperty(p)}
                         className={`p-3 rounded-xl cursor-pointer transition-all duration-150 text-xs space-y-1.5 border-l-2 ${
                           isSelected
-                            ? "bg-slate-800/90 border-emerald-400 shadow-md ring-1 ring-slate-700/60"
+                            ? "bg-slate-800/90 border-amber-400 shadow-md ring-1 ring-slate-700/60"
                             : "hover:bg-slate-800/40 border-transparent"
                         }`}
                       >
@@ -450,7 +491,7 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
                         </div>
 
                         <div className="flex items-center justify-between pt-1 border-t border-slate-800/50">
-                          <span className="font-mono font-bold text-emerald-400 text-xs">
+                          <span className="font-mono font-bold text-amber-400 text-xs">
                             {p.kisaran_nilai_tanah
                               ? `Rp ${p.kisaran_nilai_tanah.toLocaleString("id-ID")}/m²`
                               : "Belum Dinilai"}
@@ -492,6 +533,13 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
           setEditingProperty(null);
         }}
         onSave={handleSaveProperty}
+      />
+
+      {/* RBAC Governance & User Management Modal */}
+      <UserManagementModal
+        isOpen={isUserModalOpen}
+        onClose={() => setIsUserModalOpen(false)}
+        currentUser={session}
       />
     </div>
   );

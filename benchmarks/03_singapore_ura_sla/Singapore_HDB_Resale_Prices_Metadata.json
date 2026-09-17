@@ -1,0 +1,129 @@
+{
+  "code": 0,
+  "data": {
+    "datasetId": "d_8b84c4ee58e3cfc0ece0d773c8ca6abc",
+    "createdAt": "2021-07-28T10:37:00+08:00",
+    "name": "Resale flat prices based on registration date from Jan-2017 onwards",
+    "collectionIds": [
+      "189"
+    ],
+    "description": "Notes:\n\n1. The approximate floor area includes any recess area purchased, space adding item under HDB\u2019s upgrading programmes, roof terrace, etc.\n\n2. The transactions exclude resale transactions that may not reflect the full market price such as resale between relatives and resale of part shares.\n\n3. Resale prices should be taken as indicative only as the resale prices agreed between buyers and sellers are dependent on many factors.",
+    "format": "CSV",
+    "lastUpdatedAt": "2026-09-18T02:06:21+08:00",
+    "managedBy": "Housing & Development Board",
+    "coverageStart": "2017-01-01T08:00:00+08:00",
+    "coverageEnd": "2022-12-01T08:00:00+08:00",
+    "contactEmails": [
+      "lau_pei_wen@hdb.gov.sg"
+    ],
+    "datasetSize": 14049938,
+    "columnMetadata": {
+      "order": [
+        "c_dilqdowenjab3a2cwsj3qj13t",
+        "c_ajuyp50lvbqx08g2eqs7m1jf8",
+        "c_6r5chdi9y6yfn82zjhzpbv5xx",
+        "c_vb0tmiflk7hovz9p1t8ywjgw",
+        "c_2ph4q4eaak6nurp6077misjkg",
+        "c_3qu9r0hrr360737lclq97vlcx",
+        "c_47kme0bmk0lhl7jz7qrxb8rnk",
+        "c_15lo09m5ntd9skbzdbq0knggy",
+        "c_cu3l0ltobguwlq7lsmuyfh972",
+        "c_8mx0via3v27ni48n4qdgixbe",
+        "c_57phfsqfwmklcnjaqr9j6ggdh"
+      ],
+      "map": {
+        "c_dilqdowenjab3a2cwsj3qj13t": "month",
+        "c_ajuyp50lvbqx08g2eqs7m1jf8": "town",
+        "c_6r5chdi9y6yfn82zjhzpbv5xx": "flat_type",
+        "c_vb0tmiflk7hovz9p1t8ywjgw": "block",
+        "c_2ph4q4eaak6nurp6077misjkg": "street_name",
+        "c_3qu9r0hrr360737lclq97vlcx": "storey_range",
+        "c_47kme0bmk0lhl7jz7qrxb8rnk": "floor_area_sqm",
+        "c_15lo09m5ntd9skbzdbq0knggy": "flat_model",
+        "c_cu3l0ltobguwlq7lsmuyfh972": "lease_commence_date",
+        "c_8mx0via3v27ni48n4qdgixbe": "remaining_lease",
+        "c_57phfsqfwmklcnjaqr9j6ggdh": "resale_price"
+      },
+      "metaMapping": {
+        "c_dilqdowenjab3a2cwsj3qj13t": {
+          "name": "month",
+          "columnTitle": "Month",
+          "dataType": "Month (YYYY-MM)",
+          "index": "0",
+          "isCategorical": true
+        },
+        "c_ajuyp50lvbqx08g2eqs7m1jf8": {
+          "name": "town",
+          "columnTitle": "Town",
+          "dataType": "Text",
+          "index": "1",
+          "isCategorical": true
+        },
+        "c_6r5chdi9y6yfn82zjhzpbv5xx": {
+          "name": "flat_type",
+          "columnTitle": "Flat Type",
+          "dataType": "Text",
+          "index": "2",
+          "isCategorical": true
+        },
+        "c_vb0tmiflk7hovz9p1t8ywjgw": {
+          "name": "block",
+          "columnTitle": "Block",
+          "dataType": "Text",
+          "index": "3",
+          "isCategorical": true
+        },
+        "c_2ph4q4eaak6nurp6077misjkg": {
+          "name": "street_name",
+          "columnTitle": "Street Name",
+          "dataType": "Text",
+          "index": "4",
+          "isCategorical": true
+        },
+        "c_3qu9r0hrr360737lclq97vlcx": {
+          "name": "storey_range",
+          "columnTitle": "Storey Range",
+          "dataType": "Text",
+          "index": "5",
+          "isCategorical": true
+        },
+        "c_47kme0bmk0lhl7jz7qrxb8rnk": {
+          "name": "floor_area_sqm",
+          "columnTitle": "Floor Area Sqm",
+          "dataType": "Text",
+          "index": "6",
+          "isCategorical": true
+        },
+        "c_15lo09m5ntd9skbzdbq0knggy": {
+          "name": "flat_model",
+          "columnTitle": "Flat Model",
+          "dataType": "Text",
+          "index": "7",
+          "isCategorical": true
+        },
+        "c_cu3l0ltobguwlq7lsmuyfh972": {
+          "name": "lease_commence_date",
+          "columnTitle": "Lease Commence Date",
+          "dataType": "Text",
+          "index": "8",
+          "isCategorical": true
+        },
+        "c_8mx0via3v27ni48n4qdgixbe": {
+          "name": "remaining_lease",
+          "columnTitle": "Remaining Lease",
+          "dataType": "Text",
+          "index": "9",
+          "isCategorical": true
+        },
+        "c_57phfsqfwmklcnjaqr9j6ggdh": {
+          "name": "resale_price",
+          "columnTitle": "Resale Price",
+          "dataType": "Numeric",
+          "index": "10",
+          "isCategorical": true
+        }
+      }
+    }
+  },
+  "errorMsg": ""
+}

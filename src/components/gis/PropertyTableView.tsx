@@ -42,7 +42,7 @@ export function PropertyTableView({
             placeholder="Cari alamat, kota, kecamatan, atau nama surveyor..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-8 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
+            className="w-full pl-9 pr-8 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-all"
           />
           <span className="absolute left-3 top-2.5 text-slate-400 text-xs">🔍</span>
           {searchTerm && (
@@ -61,7 +61,7 @@ export function PropertyTableView({
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all cursor-pointer"
+              className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-all cursor-pointer"
             >
               <option value="ALL">Semua Jenis Properti</option>
               <option value="TANAH_BANGUNAN">Tanah & Bangunan</option>
@@ -111,7 +111,7 @@ export function PropertyTableView({
                   <td className="p-3.5 text-center font-mono text-slate-400 text-[11px] group-hover:text-slate-600 dark:group-hover:text-slate-300">
                     {p.legacy_no || idx + 1}
                   </td>
-                  <td className="p-3.5 font-semibold text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 leading-snug">
+                  <td className="p-3.5 font-semibold text-slate-900 dark:text-slate-100 group-hover:text-amber-500 dark:group-hover:text-amber-400 leading-snug">
                     {p.alamat}
                   </td>
                   <td className="p-3.5 text-slate-500 dark:text-slate-400">
@@ -131,7 +131,7 @@ export function PropertyTableView({
                   </td>
                   <td className="p-3.5 text-right font-mono text-slate-700 dark:text-slate-300">{p.luas_tanah?.toLocaleString("id-ID")}</td>
                   <td className="p-3.5 text-right font-mono text-slate-400">{p.luas_bangunan ? p.luas_bangunan.toLocaleString("id-ID") : "-"}</td>
-                  <td className="p-3.5 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                  <td className="p-3.5 text-right font-mono font-bold text-amber-600 dark:text-amber-400">
                     {p.kisaran_nilai_tanah
                       ? `Rp ${p.kisaran_nilai_tanah.toLocaleString("id-ID")}`
                       : "-"}

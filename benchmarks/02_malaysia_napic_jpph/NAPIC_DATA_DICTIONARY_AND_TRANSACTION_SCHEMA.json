@@ -1,0 +1,87 @@
+{
+  "system": "NAPIC - JPPH Malaysia (PRISM System Architecture)",
+  "version": "2024.1",
+  "authority": "Valuation and Property Services Department, Ministry of Finance Malaysia",
+  "fields": [
+    {
+      "field_name": "transaction_id",
+      "data_type": "VARCHAR(36)",
+      "description": "Unique statutory identifier generated upon Form 14A stamping lodgement"
+    },
+    {
+      "field_name": "state_code",
+      "data_type": "VARCHAR(2)",
+      "description": "State identifier (e.g. 10: Selangor, 14: WP Kuala Lumpur, 01: Johor)"
+    },
+    {
+      "field_name": "district_name",
+      "data_type": "VARCHAR(50)",
+      "description": "Administrative district (Daerah)"
+    },
+    {
+      "field_name": "mukim_name",
+      "data_type": "VARCHAR(50)",
+      "description": "Sub-district / parish (Mukim / Bandar / Pekan)"
+    },
+    {
+      "field_name": "scheme_name",
+      "data_type": "VARCHAR(100)",
+      "description": "Housing estate or commercial development project name (Taman / Seksyen)"
+    },
+    {
+      "field_name": "title_type",
+      "data_type": "ENUM('FREEHOLD_PEGANGAN_BEBAS', 'LEASEHOLD_PAJAKAN')",
+      "description": "Land tenure category under National Land Code"
+    },
+    {
+      "field_name": "unexpired_lease_term",
+      "data_type": "SMALLINT",
+      "description": "Remaining lease years at date of transaction (applicable for Leasehold)"
+    },
+    {
+      "field_name": "property_sector",
+      "data_type": "ENUM('RESIDENTIAL', 'COMMERCIAL', 'INDUSTRIAL', 'AGRICULTURAL', 'DEVELOPMENT_LAND')",
+      "description": "High-level real estate subsector"
+    },
+    {
+      "field_name": "property_type_detail",
+      "data_type": "VARCHAR(50)",
+      "description": "Specific typology: 1-Storey Terraced, 2-Storey Semi-Detached, Condominium, Shop-Office 3-Storey"
+    },
+    {
+      "field_name": "land_area_sqm",
+      "data_type": "DECIMAL(10,2)",
+      "description": "Cadastral land parcel area in square meters"
+    },
+    {
+      "field_name": "built_up_area_sqm",
+      "data_type": "DECIMAL(10,2)",
+      "description": "Main floor area (MFA) + Ancillary floor area (AFA) in square meters"
+    },
+    {
+      "field_name": "consideration_price_myr",
+      "data_type": "BIGINT",
+      "description": "Stated contract price agreed between buyer and seller in Ringgit Malaysia"
+    },
+    {
+      "field_name": "adjudicated_market_value_myr",
+      "data_type": "BIGINT",
+      "description": "Independent fair market value assessed by JPPH valuation officer for stamp duty baseline"
+    },
+    {
+      "field_name": "unit_price_psm",
+      "data_type": "DECIMAL(12,2)",
+      "description": "Analyzed unit rate in MYR per square meter of land or built-up area"
+    },
+    {
+      "field_name": "date_of_contract",
+      "data_type": "DATE",
+      "description": "Date stated on Sale and Purchase Agreement (SPA)"
+    },
+    {
+      "field_name": "date_of_stamping",
+      "data_type": "DATE",
+      "description": "Date when stamp duty was paid and transfer endorsed"
+    }
+  ]
+}

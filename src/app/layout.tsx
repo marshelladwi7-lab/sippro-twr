@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
+import "@fontsource/plus-jakarta-sans/300.css";
+import "@fontsource/plus-jakarta-sans/400.css";
+import "@fontsource/plus-jakarta-sans/500.css";
+import "@fontsource/plus-jakarta-sans/600.css";
+import "@fontsource/plus-jakarta-sans/700.css";
+import "@fontsource/plus-jakarta-sans/800.css";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { ToastProvider } from "@/components/ui/Toast";
-
 import { ThemeProvider } from "@/lib/theme/theme-context";
 
 export const metadata: Metadata = {
@@ -18,7 +23,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id" className="dark" suppressHydrationWarning>
-      <body className="antialiased min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 selection:bg-emerald-500 selection:text-white transition-colors duration-150">
+      <body className="font-sans antialiased min-h-screen bg-slate-950 text-slate-100 selection:bg-amber-500/30 selection:text-amber-200 transition-colors duration-150">
         <ThemeProvider>
           <AuthProvider>
             <ToastProvider>{children}</ToastProvider>
