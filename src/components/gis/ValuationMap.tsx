@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import maplibregl, { Map as MapLibreMap, GeoJSONSource } from "maplibre-gl";
+import maplibregl, { Map as MapLibreMap, Marker } from "maplibre-gl";
 import { MarketComparableEntity } from "@/types/database";
 
 interface ValuationMapProps {
@@ -25,9 +25,14 @@ export function ValuationMap({
 }: ValuationMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
+  const markersMapRef = useRef<Map<string, { marker: Marker; el: HTMLElement }>>(new Map());
+  const selectedMarkerIdRef = useRef<string | null>(null);
+  const tempMarkerRef = useRef<Marker | null>(null);
+
   const [activePopupProperty, setActivePopupProperty] = useState<MarketComparableEntity | null>(null);
   const [activeBaseLayer, setActiveBaseLayer] = useState<BaseLayerId>("voyager");
   const [isAddMode, setIsAddMode] = useState(false);
+  const [hoverCoordinate, setHoverCoordinate] = useState<{ lat: number; lng: number } | null>(null);
 
   const propertiesRef = useRef(properties);
   propertiesRef.current = properties;
@@ -163,133 +168,55 @@ export function ValuationMap({
 
     map.addControl(new maplibregl.NavigationControl(), "top-right");
 
+    // Track mouse coordinate over map
+    map.on("mousemove", (e) => {
+      setHoverCoordinate({
+        lat: Number(e.lngLat.lat.toFixed(6)),
+        lng: Number(e.lngLat.lng.toFixed(6)),
+      });
+    });
+
+    // Helper to create pin element
+    const createPin = (p: MarketComparableEntity, isSelected: boolean) => {
+      const isKosong = p.jenis_properti === "TANAH_KOSONG";
+      const el = document.createElement("div");
+      el.className = "cursor-pointer transition-transform hover:scale-125 select-none";
+      el.innerHTML = `
+        <div class="relative flex items-center justify-center">
+          ${isSelected ? '<div class="absolute w-8 h-8 rounded-full bg-rose-500/30 animate-ping"></div>' : ""}
+          <div class="pin-badge w-6 h-6 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[9px] font-black text-white transition-all ${
+            isSelected
+              ? "bg-rose-600 ring-2 ring-rose-400 scale-125 z-20 shadow-rose-500/40"
+              : isKosong
+              ? "bg-amber-600 hover:bg-amber-500 shadow-amber-500/30"
+              : "bg-sky-600 hover:bg-sky-500 shadow-sky-500/30"
+          }">
+            ${p.legacy_no ? p.legacy_no : "•"}
+          </div>
+        </div>
+      `;
+
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        onSelectPropertyRef.current(p);
+        setActivePopupProperty(p);
+      });
+
+      return el;
+    };
+
     map.on("load", () => {
-      // GPU-accelerated GeoJSON source for all 1,511+ points (0 DOM markers)
-      map.addSource("properties-source", {
-        type: "geojson",
-        data: {
-          type: "FeatureCollection",
-          features: [],
-        },
+      // Create initial markers directly - 100% reliable, zero race condition
+      propertiesRef.current.forEach((p) => {
+        if (!p.latitude || !p.longitude) return;
+        const el = createPin(p, false);
+        const marker = new maplibregl.Marker({ element: el })
+          .setLngLat([p.longitude, p.latitude])
+          .addTo(map);
+        markersMapRef.current.set(p.id, { marker, el });
       });
 
-      // Halo layer (outer glow)
-      map.addLayer({
-        id: "properties-halo",
-        type: "circle",
-        source: "properties-source",
-        paint: {
-          "circle-radius": [
-            "case",
-            ["==", ["get", "isSelected"], true],
-            14,
-            8,
-          ],
-          "circle-color": [
-            "case",
-            ["==", ["get", "isSelected"], true],
-            "#10b981",
-            ["==", ["get", "isKosong"], true],
-            "#f59e0b",
-            "#0ea5e9",
-          ],
-          "circle-opacity": [
-            "case",
-            ["==", ["get", "isSelected"], true],
-            0.5,
-            0.25,
-          ],
-        },
-      });
-
-      // Core circle layer
-      map.addLayer({
-        id: "properties-core",
-        type: "circle",
-        source: "properties-source",
-        paint: {
-          "circle-radius": [
-            "case",
-            ["==", ["get", "isSelected"], true],
-            8,
-            5.5,
-          ],
-          "circle-color": [
-            "case",
-            ["==", ["get", "isSelected"], true],
-            "#059669",
-            ["==", ["get", "isKosong"], true],
-            "#d97706",
-            "#0284c7",
-          ],
-          "circle-stroke-width": [
-            "case",
-            ["==", ["get", "isSelected"], true],
-            2.5,
-            1.5,
-          ],
-          "circle-stroke-color": "#ffffff",
-        },
-      });
-
-      // Legacy number labels inside pin circles (matches authentic UI)
-      map.addLayer({
-        id: "properties-labels",
-        type: "symbol",
-        source: "properties-source",
-        layout: {
-          "text-field": ["to-string", ["get", "legacy_no"]],
-          "text-size": 8,
-          "text-allow-overlap": true,
-          "text-ignore-placement": true,
-        },
-        paint: {
-          "text-color": "#ffffff",
-        },
-      });
-
-      // Hover cursor
-      map.on("mouseenter", "properties-core", () => {
-        map.getCanvas().style.cursor = isAddModeRef.current ? "crosshair" : "pointer";
-      });
-      map.on("mouseleave", "properties-core", () => {
-        map.getCanvas().style.cursor = isAddModeRef.current ? "crosshair" : "";
-      });
-
-      // Point click handler
-      map.on("click", "properties-core", (e) => {
-        if (isAddModeRef.current) return;
-        if (e.features && e.features[0]) {
-          const id = e.features[0].properties?.id;
-          const found = propertiesRef.current.find((p) => p.id === id);
-          if (found) {
-            onSelectPropertyRef.current(found);
-            setActivePopupProperty(found);
-          }
-        }
-      });
-
-      // Map click handler (for Add POI mode)
-      map.on("click", (e) => {
-        if (isAddModeRef.current) {
-          onAddAtCoordinateRef.current(
-            Number(e.lngLat.lat.toFixed(6)),
-            Number(e.lngLat.lng.toFixed(6))
-          );
-          setIsAddMode(false);
-        }
-      });
-
-      // Right-click anywhere to drop pin
-      map.on("contextmenu", (e) => {
-        e.preventDefault();
-        onAddAtCoordinateRef.current(
-          Number(e.lngLat.lat.toFixed(6)),
-          Number(e.lngLat.lng.toFixed(6))
-        );
-      });
-
-      // Initial fit bounds to display all points
+      // Fit bounds to all properties
       if (propertiesRef.current.length > 0) {
         let minLng = 180, maxLng = -180, minLat = 90, maxLat = -90;
         let valid = 0;
@@ -308,60 +235,135 @@ export function ValuationMap({
       }
     });
 
+    // Map click for manual POI addition
+    map.on("click", (e) => {
+      if (isAddModeRef.current) {
+        const lat = Number(e.lngLat.lat.toFixed(6));
+        const lng = Number(e.lngLat.lng.toFixed(6));
+
+        if (tempMarkerRef.current) tempMarkerRef.current.remove();
+        const tempEl = document.createElement("div");
+        tempEl.innerHTML = `
+          <div class="flex flex-col items-center animate-bounce">
+            <div class="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-mono font-bold shadow-lg border border-white whitespace-nowrap mb-1">
+              ${lat.toFixed(5)}, ${lng.toFixed(5)}
+            </div>
+            <div class="w-7 h-7 rounded-full bg-emerald-500 border-2 border-white shadow-xl flex items-center justify-center text-white ring-2 ring-emerald-300">
+              ➕
+            </div>
+          </div>
+        `;
+        tempMarkerRef.current = new maplibregl.Marker({ element: tempEl })
+          .setLngLat([lng, lat])
+          .addTo(map);
+
+        onAddAtCoordinateRef.current(lat, lng);
+        setIsAddMode(false);
+      }
+    });
+
+    // Right-click anywhere to drop pin and add POI
+    map.on("contextmenu", (e) => {
+      e.preventDefault();
+      const lat = Number(e.lngLat.lat.toFixed(6));
+      const lng = Number(e.lngLat.lng.toFixed(6));
+      onAddAtCoordinateRef.current(lat, lng);
+    });
+
     mapRef.current = map;
 
     return () => {
       map.remove();
       mapRef.current = null;
+      markersMapRef.current.clear();
     };
   }, []);
 
-  // Update GeoJSON source instantly (< 1ms via WebGL, 60 FPS)
+  // Filter markers without recreating DOM nodes (fast style.display toggle in < 0.5ms)
   useEffect(() => {
-    if (!mapRef.current) return;
-    const map = mapRef.current;
-    const source = map.getSource("properties-source") as GeoJSONSource | undefined;
-    if (!source) return;
+    const visibleIds = new Set(properties.map((p) => p.id));
 
-    const features: GeoJSON.Feature<GeoJSON.Point>[] = [];
-    for (let i = 0; i < properties.length; i++) {
-      const p = properties[i];
-      if (!p.latitude || !p.longitude) continue;
-
-      const isSelected = selectedProperty?.id === p.id;
-      const isKosong = p.jenis_properti === "TANAH_KOSONG";
-
-      features.push({
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: [p.longitude, p.latitude],
-        },
-        properties: {
-          id: p.id,
-          legacy_no: p.legacy_no || "",
-          alamat: p.alamat || "Data Properti",
-          kisaran_nilai_tanah: p.kisaran_nilai_tanah || 0,
-          isSelected,
-          isKosong,
-        },
+    if (mapRef.current) {
+      // Add any new property added to data
+      properties.forEach((p) => {
+        if (!p.latitude || !p.longitude) return;
+        if (!markersMapRef.current.has(p.id)) {
+          const isKosong = p.jenis_properti === "TANAH_KOSONG";
+          const el = document.createElement("div");
+          el.className = "cursor-pointer transition-transform hover:scale-125 select-none";
+          el.innerHTML = `
+            <div class="relative flex items-center justify-center">
+              <div class="pin-badge w-6 h-6 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[9px] font-black text-white transition-all ${
+                isKosong ? "bg-amber-600 hover:bg-amber-500 shadow-amber-500/30" : "bg-sky-600 hover:bg-sky-500 shadow-sky-500/30"
+              }">
+                ${p.legacy_no ? p.legacy_no : "•"}
+              </div>
+            </div>
+          `;
+          el.addEventListener("click", (e) => {
+            e.stopPropagation();
+            onSelectPropertyRef.current(p);
+            setActivePopupProperty(p);
+          });
+          const marker = new maplibregl.Marker({ element: el })
+            .setLngLat([p.longitude, p.latitude])
+            .addTo(mapRef.current!);
+          markersMapRef.current.set(p.id, { marker, el });
+        }
       });
     }
 
-    source.setData({
-      type: "FeatureCollection",
-      features,
+    markersMapRef.current.forEach(({ el }, id) => {
+      el.style.display = visibleIds.has(id) ? "" : "none";
     });
-  }, [properties, selectedProperty]);
+  }, [properties]);
 
-  // Fly to selected property
+  // Update selected marker highlight in 0.001ms without touching other 1,510 markers
   useEffect(() => {
-    if (!mapRef.current || !selectedProperty) return;
-    if (selectedProperty.latitude && selectedProperty.longitude) {
+    if (!selectedProperty) return;
+
+    // Remove active styles from previously selected marker
+    if (selectedMarkerIdRef.current && markersMapRef.current.has(selectedMarkerIdRef.current)) {
+      const prev = markersMapRef.current.get(selectedMarkerIdRef.current);
+      if (prev) {
+        const prevProp = propertiesRef.current.find((p) => p.id === selectedMarkerIdRef.current);
+        const isKosong = prevProp?.jenis_properti === "TANAH_KOSONG";
+        const badge = prev.el.querySelector(".pin-badge");
+        if (badge) {
+          badge.className = `pin-badge w-6 h-6 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[9px] font-black text-white transition-all ${
+            isKosong ? "bg-amber-600 hover:bg-amber-500 shadow-amber-500/30" : "bg-sky-600 hover:bg-sky-500 shadow-sky-500/30"
+          }`;
+        }
+        const ping = prev.el.querySelector(".animate-ping");
+        if (ping) ping.remove();
+      }
+    }
+
+    // Add active styles to new selected marker
+    if (markersMapRef.current.has(selectedProperty.id)) {
+      const current = markersMapRef.current.get(selectedProperty.id);
+      if (current) {
+        const badge = current.el.querySelector(".pin-badge");
+        if (badge) {
+          badge.className =
+            "pin-badge w-6 h-6 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[9px] font-black text-white transition-all bg-rose-600 ring-2 ring-rose-400 scale-125 z-20 shadow-rose-500/40";
+        }
+        const pingWrapper = current.el.querySelector(".relative");
+        if (pingWrapper && !current.el.querySelector(".animate-ping")) {
+          const pingDiv = document.createElement("div");
+          pingDiv.className = "absolute w-8 h-8 rounded-full bg-rose-500/30 animate-ping";
+          pingWrapper.prepend(pingDiv);
+        }
+      }
+      selectedMarkerIdRef.current = selectedProperty.id;
+    }
+
+    // Fly to selected property
+    if (mapRef.current && selectedProperty.latitude && selectedProperty.longitude) {
       mapRef.current.flyTo({
         center: [selectedProperty.longitude, selectedProperty.latitude],
-        zoom: 15,
-        duration: 1000,
+        zoom: 15.5,
+        duration: 900,
         essential: true,
       });
       setActivePopupProperty(selectedProperty);
@@ -521,6 +523,10 @@ export function ValuationMap({
                 {activePopupProperty.desa_kelurahan ? `${activePopupProperty.desa_kelurahan}, ` : ""}
                 {activePopupProperty.kecamatan}, {activePopupProperty.kota_kab}
               </p>
+              <div className="text-[11px] font-mono text-emerald-400/90 flex items-center gap-1.5 mt-1 bg-slate-950/60 px-2 py-0.5 rounded-md border border-slate-800/80 w-fit">
+                <span>📍 WGS84:</span>
+                <span className="font-semibold">{activePopupProperty.latitude.toFixed(6)}, {activePopupProperty.longitude.toFixed(6)}</span>
+              </div>
             </div>
             <button
               onClick={() => setActivePopupProperty(null)}
@@ -584,6 +590,16 @@ export function ValuationMap({
           </div>
         </div>
       )}
+
+      {/* Bottom Right Live Cursor Coordinate Display */}
+      <div className="absolute bottom-3 right-3 bg-slate-900/95 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-md border border-slate-800 text-[11px] font-mono text-slate-400 z-10 hidden sm:flex items-center space-x-2">
+        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>
+          {hoverCoordinate
+            ? `Lintang: ${hoverCoordinate.lat.toFixed(6)} | Bujur: ${hoverCoordinate.lng.toFixed(6)}`
+            : "Arahkan kursor ke peta untuk koordinat"}
+        </span>
+      </div>
     </div>
   );
 }

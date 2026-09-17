@@ -446,6 +446,11 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
                           {p.kota_kab} ({p.provinsi})
                         </div>
 
+                        <div className="text-[10px] text-slate-500 font-mono flex items-center gap-1">
+                          <span>📍</span>
+                          <span>{p.latitude.toFixed(5)}, {p.longitude.toFixed(5)}</span>
+                        </div>
+
                         <div className="flex items-center justify-between pt-1 border-t border-slate-800/50">
                           <span className="font-mono font-bold text-emerald-400 text-xs">
                             {p.kisaran_nilai_tanah
