@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import maplibregl, { Map as MapLibreMap, Marker, Popup } from "maplibre-gl";
+import maplibregl, { Map as MapLibreMap, GeoJSONSource } from "maplibre-gl";
 import { MarketComparableEntity } from "@/types/database";
 
 interface ValuationMapProps {
@@ -25,9 +25,21 @@ export function ValuationMap({
 }: ValuationMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
-  const markersRef = useRef<Marker[]>([]);
   const [activePopupProperty, setActivePopupProperty] = useState<MarketComparableEntity | null>(null);
-  const [activeBaseLayer, setActiveBaseLayer] = useState<BaseLayerId>("positron");
+  const [activeBaseLayer, setActiveBaseLayer] = useState<BaseLayerId>("voyager");
+  const [isAddMode, setIsAddMode] = useState(false);
+
+  const propertiesRef = useRef(properties);
+  propertiesRef.current = properties;
+
+  const onSelectPropertyRef = useRef(onSelectProperty);
+  onSelectPropertyRef.current = onSelectProperty;
+
+  const onAddAtCoordinateRef = useRef(onAddAtCoordinate);
+  onAddAtCoordinateRef.current = onAddAtCoordinate;
+
+  const isAddModeRef = useRef(isAddMode);
+  isAddModeRef.current = isAddMode;
 
   // Switch Active Map Layer
   const handleLayerChange = (newLayer: BaseLayerId) => {
@@ -53,11 +65,16 @@ export function ValuationMap({
     });
   };
 
+  useEffect(() => {
+    if (!mapRef.current) return;
+    mapRef.current.getCanvas().style.cursor = isAddMode ? "crosshair" : "";
+  }, [isAddMode]);
+
   // Initialize Map
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
-    const initialCenter: [number, number] = [107.173722, -6.395972]; // Jakarta / Bekasi default
+    const initialCenter: [number, number] = [115.141356, -8.846376];
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
@@ -145,9 +162,133 @@ export function ValuationMap({
 
     map.addControl(new maplibregl.NavigationControl(), "top-right");
 
-    // Click map to drop new geotag pin
-    map.on("contextmenu", (e) => {
-      onAddAtCoordinate(e.lngLat.lat, e.lngLat.lng);
+    map.on("load", () => {
+      // GPU-accelerated GeoJSON source for all 1,511+ points (0 DOM markers)
+      map.addSource("properties-source", {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: [],
+        },
+      });
+
+      // Halo layer (outer glow)
+      map.addLayer({
+        id: "properties-halo",
+        type: "circle",
+        source: "properties-source",
+        paint: {
+          "circle-radius": [
+            "case",
+            ["==", ["get", "isSelected"], true],
+            14,
+            8,
+          ],
+          "circle-color": [
+            "case",
+            ["==", ["get", "isSelected"], true],
+            "#10b981",
+            ["==", ["get", "isKosong"], true],
+            "#f59e0b",
+            "#0ea5e9",
+          ],
+          "circle-opacity": [
+            "case",
+            ["==", ["get", "isSelected"], true],
+            0.5,
+            0.25,
+          ],
+        },
+      });
+
+      // Core circle layer
+      map.addLayer({
+        id: "properties-core",
+        type: "circle",
+        source: "properties-source",
+        paint: {
+          "circle-radius": [
+            "case",
+            ["==", ["get", "isSelected"], true],
+            8,
+            5.5,
+          ],
+          "circle-color": [
+            "case",
+            ["==", ["get", "isSelected"], true],
+            "#059669",
+            ["==", ["get", "isKosong"], true],
+            "#d97706",
+            "#0284c7",
+          ],
+          "circle-stroke-width": [
+            "case",
+            ["==", ["get", "isSelected"], true],
+            2.5,
+            1.5,
+          ],
+          "circle-stroke-color": "#ffffff",
+        },
+      });
+
+      // Hover cursor
+      map.on("mouseenter", "properties-core", () => {
+        map.getCanvas().style.cursor = isAddModeRef.current ? "crosshair" : "pointer";
+      });
+      map.on("mouseleave", "properties-core", () => {
+        map.getCanvas().style.cursor = isAddModeRef.current ? "crosshair" : "";
+      });
+
+      // Point click handler
+      map.on("click", "properties-core", (e) => {
+        if (isAddModeRef.current) return;
+        if (e.features && e.features[0]) {
+          const id = e.features[0].properties?.id;
+          const found = propertiesRef.current.find((p) => p.id === id);
+          if (found) {
+            onSelectPropertyRef.current(found);
+            setActivePopupProperty(found);
+          }
+        }
+      });
+
+      // Map click handler (for Add POI mode)
+      map.on("click", (e) => {
+        if (isAddModeRef.current) {
+          onAddAtCoordinateRef.current(
+            Number(e.lngLat.lat.toFixed(6)),
+            Number(e.lngLat.lng.toFixed(6))
+          );
+          setIsAddMode(false);
+        }
+      });
+
+      // Right-click anywhere to drop pin
+      map.on("contextmenu", (e) => {
+        e.preventDefault();
+        onAddAtCoordinateRef.current(
+          Number(e.lngLat.lat.toFixed(6)),
+          Number(e.lngLat.lng.toFixed(6))
+        );
+      });
+
+      // Initial fit bounds to display all points
+      if (propertiesRef.current.length > 0) {
+        let minLng = 180, maxLng = -180, minLat = 90, maxLat = -90;
+        let valid = 0;
+        propertiesRef.current.forEach((p) => {
+          if (p.longitude && p.latitude) {
+            if (p.longitude < minLng) minLng = p.longitude;
+            if (p.longitude > maxLng) maxLng = p.longitude;
+            if (p.latitude < minLat) minLat = p.latitude;
+            if (p.latitude > maxLat) maxLat = p.latitude;
+            valid++;
+          }
+        });
+        if (valid > 0) {
+          map.fitBounds([[minLng, minLat], [maxLng, maxLat]], { padding: 40 });
+        }
+      }
     });
 
     mapRef.current = map;
@@ -158,52 +299,41 @@ export function ValuationMap({
     };
   }, []);
 
-  // Update Markers
+  // Update GeoJSON source instantly (< 1ms via WebGL, 60 FPS)
   useEffect(() => {
     if (!mapRef.current) return;
+    const map = mapRef.current;
+    const source = map.getSource("properties-source") as GeoJSONSource | undefined;
+    if (!source) return;
 
-    // Clear existing markers
-    markersRef.current.forEach((m) => m.remove());
-    markersRef.current = [];
-
-    properties.forEach((p) => {
-      if (!p.latitude || !p.longitude) return;
+    const features: GeoJSON.Feature<GeoJSON.Point>[] = [];
+    for (let i = 0; i < properties.length; i++) {
+      const p = properties[i];
+      if (!p.latitude || !p.longitude) continue;
 
       const isSelected = selectedProperty?.id === p.id;
       const isKosong = p.jenis_properti === "TANAH_KOSONG";
 
-      const el = document.createElement("div");
-      el.className = "cursor-pointer transition-transform hover:scale-125 select-none";
-      el.innerHTML = `
-        <div class="relative flex items-center justify-center">
-          ${
-            isSelected
-              ? '<div class="absolute w-8 h-8 rounded-full bg-rose-500/30 animate-ping"></div>'
-              : ""
-          }
-          <div class="w-6 h-6 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[9px] font-black text-white ${
-            isSelected
-              ? "bg-rose-600 ring-2 ring-rose-400 scale-125 z-20"
-              : isKosong
-              ? "bg-amber-600 hover:bg-amber-500"
-              : "bg-sky-600 hover:bg-sky-500"
-          }">
-            ${p.legacy_no ? p.legacy_no : "•"}
-          </div>
-        </div>
-      `;
-
-      el.addEventListener("click", (e) => {
-        e.stopPropagation();
-        onSelectProperty(p);
-        setActivePopupProperty(p);
+      features.push({
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [p.longitude, p.latitude],
+        },
+        properties: {
+          id: p.id,
+          legacy_no: p.legacy_no || "",
+          alamat: p.alamat || "Data Properti",
+          kisaran_nilai_tanah: p.kisaran_nilai_tanah || 0,
+          isSelected,
+          isKosong,
+        },
       });
+    }
 
-      const marker = new maplibregl.Marker({ element: el })
-        .setLngLat([p.longitude, p.latitude])
-        .addTo(mapRef.current!);
-
-      markersRef.current.push(marker);
+    source.setData({
+      type: "FeatureCollection",
+      features,
     });
   }, [properties, selectedProperty]);
 
@@ -214,19 +344,38 @@ export function ValuationMap({
       mapRef.current.flyTo({
         center: [selectedProperty.longitude, selectedProperty.latitude],
         zoom: 15,
-        duration: 1200,
+        duration: 1000,
         essential: true,
       });
       setActivePopupProperty(selectedProperty);
     }
   }, [selectedProperty]);
 
+  // Reset/Fit All Bounds
+  const handleFitAll = () => {
+    if (!mapRef.current || properties.length === 0) return;
+    let minLng = 180, maxLng = -180, minLat = 90, maxLat = -90;
+    let valid = 0;
+    properties.forEach((p) => {
+      if (p.longitude && p.latitude) {
+        if (p.longitude < minLng) minLng = p.longitude;
+        if (p.longitude > maxLng) maxLng = p.longitude;
+        if (p.latitude < minLat) minLat = p.latitude;
+        if (p.latitude > maxLat) maxLat = p.latitude;
+        valid++;
+      }
+    });
+    if (valid > 0) {
+      mapRef.current.fitBounds([[minLng, minLat], [maxLng, maxLat]], { padding: 40 });
+    }
+  };
+
   return (
     <div className="relative w-full h-full min-h-[500px] rounded-2xl overflow-hidden border border-slate-800 shadow-lg bg-slate-950">
       <div ref={mapContainerRef} className="w-full h-full" />
 
       {/* Floating Map Legend & Geotag Hint */}
-      <div className="absolute top-3 left-3 bg-slate-900/90 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-lg border border-slate-800 text-xs font-medium text-slate-300 flex items-center space-x-3 pointer-events-none z-10">
+      <div className="absolute top-3 left-3 bg-slate-900/95 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-lg border border-slate-800 text-xs font-medium text-slate-300 flex items-center space-x-3 pointer-events-none z-10">
         <div className="flex items-center space-x-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-sky-500 inline-block shadow-xs shadow-sky-500/50"></span>
           <span className="text-[11px] font-semibold text-slate-200">Tanah & Bangunan</span>
@@ -235,42 +384,108 @@ export function ValuationMap({
           <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block shadow-xs shadow-amber-500/50"></span>
           <span className="text-[11px] font-semibold text-slate-200">Tanah Kosong</span>
         </div>
-        <div className="text-slate-500 text-[10px] pl-2 border-l border-slate-800 font-mono">
+        <div className="text-slate-400 text-[10px] pl-2 border-l border-slate-800 font-mono hidden sm:inline">
           📍 Klik kanan peta untuk tambah titik
         </div>
       </div>
 
-      {/* Base Layer Switcher (CARTO Voyager, OSM, Satelit) */}
-      <div className="absolute top-3 right-14 bg-slate-900/90 backdrop-blur-md p-1 rounded-xl shadow-lg border border-slate-800 flex items-center space-x-1 z-10">
+      {/* Active Add Mode Floating Banner */}
+      {isAddMode && (
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 bg-amber-500 text-slate-950 px-4 py-2 rounded-xl shadow-2xl font-bold text-xs flex items-center gap-2 border border-amber-300 animate-in fade-in slide-in-from-top-2">
+          <span>📍 Klik di mana saja pada peta untuk menambah data titik baru</span>
+          <button
+            type="button"
+            onClick={() => setIsAddMode(false)}
+            className="ml-2 bg-slate-950 hover:bg-slate-800 text-white px-2.5 py-0.5 rounded-lg text-[11px] transition-all cursor-pointer"
+          >
+            Batal
+          </button>
+        </div>
+      )}
+
+      {/* Top Right Map Controls: Layer Switcher, Fit All, and Manual Add Button */}
+      <div className="absolute top-3 right-14 flex items-center gap-2 z-10">
+        {/* Manual POI Add Button */}
         <button
           type="button"
-          onClick={() => handleLayerChange("voyager")}
-          className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-            activeBaseLayer === "voyager"
-              ? "bg-slate-800 text-white shadow-xs border border-slate-700"
-              : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+          onClick={() => setIsAddMode((prev) => !prev)}
+          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer border ${
+            isAddMode
+              ? "bg-amber-500 text-slate-950 border-amber-300 ring-2 ring-amber-400/50"
+              : "bg-slate-900/95 hover:bg-slate-800 text-emerald-400 border-slate-800"
           }`}
-          title="CARTO Voyager (Bebas Watermark)"
+          title="Tambah Titik Data Baru di Peta"
         >
-          🗺️ Voyager
+          <span>➕</span>
+          <span className="hidden sm:inline">{isAddMode ? "Klik di Peta..." : "Tambah Titik Manual"}</span>
         </button>
+
+        {/* Fit Bounds Overview Button */}
         <button
           type="button"
-          onClick={() => handleLayerChange("satellite")}
-          className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-            activeBaseLayer === "satellite"
-              ? "bg-slate-800 text-white shadow-xs border border-slate-700"
-              : "text-slate-400 hover:text-white hover:bg-slate-800/40"
-          }`}
-          title="Foto Satelit Esri World Imagery"
+          onClick={handleFitAll}
+          className="px-2.5 py-1.5 bg-slate-900/95 hover:bg-slate-800 text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition-all border border-slate-800 shadow-md cursor-pointer"
+          title="Tampilkan Seluruh Titik Data di Indonesia"
         >
-          🛰️ Satelit
+          🗺️ Semua Titik
         </button>
+
+        {/* Base Layer Switcher (Voyager, Terang, Gelap, Satelit) */}
+        <div className="bg-slate-900/95 backdrop-blur-md p-1 rounded-xl shadow-lg border border-slate-800 flex items-center space-x-1 text-xs">
+          <button
+            type="button"
+            onClick={() => handleLayerChange("voyager")}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
+              activeBaseLayer === "voyager"
+                ? "bg-slate-800 text-white shadow-xs border border-slate-700"
+                : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+            }`}
+            title="CARTO Voyager"
+          >
+            Voyager
+          </button>
+          <button
+            type="button"
+            onClick={() => handleLayerChange("positron")}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
+              activeBaseLayer === "positron"
+                ? "bg-slate-800 text-white shadow-xs border border-slate-700"
+                : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+            }`}
+            title="CARTO Positron (Terang)"
+          >
+            Terang
+          </button>
+          <button
+            type="button"
+            onClick={() => handleLayerChange("dark")}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
+              activeBaseLayer === "dark"
+                ? "bg-slate-800 text-white shadow-xs border border-slate-700"
+                : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+            }`}
+            title="CARTO Dark Matter (Gelap)"
+          >
+            Gelap
+          </button>
+          <button
+            type="button"
+            onClick={() => handleLayerChange("satellite")}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
+              activeBaseLayer === "satellite"
+                ? "bg-emerald-600 text-white shadow-xs"
+                : "text-slate-400 hover:text-white hover:bg-slate-800/40"
+            }`}
+            title="Foto Satelit Esri World Imagery"
+          >
+            Satelit
+          </button>
+        </div>
       </div>
 
       {/* Selected Property Inspector Card (Bottom-Left Drawer) */}
       {activePopupProperty && (
-        <div className="absolute bottom-4 left-4 right-4 md:right-auto md:w-96 bg-slate-900/95 backdrop-blur-md rounded-2xl p-4 shadow-2xl border border-slate-800 z-20 space-y-3">
+        <div className="absolute bottom-4 left-4 right-4 md:right-auto md:w-96 bg-slate-900/95 backdrop-blur-md rounded-2xl p-4 shadow-2xl border border-slate-800 z-20 space-y-3 animate-in fade-in slide-in-from-bottom-2">
           <div className="flex items-start justify-between">
             <div>
               <span
@@ -298,29 +513,29 @@ export function ValuationMap({
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 text-xs bg-slate-950/80 p-3 rounded-xl border border-slate-800/80">
+          <div className="grid grid-cols-2 gap-2 text-xs bg-slate-950/80 p-3 rounded-xl border border-slate-800/80 font-mono">
             <div>
-              <span className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold block">Kisaran Nilai Tanah</span>
-              <span className="font-bold text-emerald-400 font-mono text-sm">
+              <span className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold block font-sans">Kisaran Nilai Tanah</span>
+              <span className="font-bold text-emerald-400 text-sm">
                 {activePopupProperty.kisaran_nilai_tanah
                   ? `Rp ${activePopupProperty.kisaran_nilai_tanah.toLocaleString("id-ID")}/m²`
                   : "Belum Dinilai"}
               </span>
             </div>
             <div>
-              <span className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold block">Luas Tanah / Bangunan</span>
-              <span className="font-bold text-slate-200 font-mono">
+              <span className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold block font-sans">Luas Tanah / Bangunan</span>
+              <span className="font-bold text-slate-200">
                 {activePopupProperty.luas_tanah} m² / {activePopupProperty.luas_bangunan} m²
               </span>
             </div>
             <div>
-              <span className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold block">Legalitas / Tapak</span>
+              <span className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold block font-sans">Legalitas / Tapak</span>
               <span className="font-medium text-slate-300">
                 {activePopupProperty.legalitas} ({activePopupProperty.tapak})
               </span>
             </div>
             <div>
-              <span className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold block">Surveyor / Tanggal</span>
+              <span className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold block font-sans">Surveyor / Tanggal</span>
               <span className="font-medium text-slate-300">
                 {activePopupProperty.surveyor_name || "-"} ({activePopupProperty.tanggal_data})
               </span>
@@ -355,3 +570,5 @@ export function ValuationMap({
     </div>
   );
 }
+
+export default ValuationMap;

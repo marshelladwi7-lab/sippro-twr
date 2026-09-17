@@ -147,9 +147,11 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
       const q = searchTerm.toLowerCase();
       const matchesSearch =
         !searchTerm ||
-        p.alamat.toLowerCase().includes(q) ||
-        p.kota_kab.toLowerCase().includes(q) ||
-        p.kecamatan.toLowerCase().includes(q) ||
+        (p.alamat && p.alamat.toLowerCase().includes(q)) ||
+        (p.kota_kab && p.kota_kab.toLowerCase().includes(q)) ||
+        (p.kecamatan && p.kecamatan.toLowerCase().includes(q)) ||
+        (p.desa_kelurahan && p.desa_kelurahan.toLowerCase().includes(q)) ||
+        (p.legacy_no && String(p.legacy_no).includes(q)) ||
         (p.surveyor_name && p.surveyor_name.toLowerCase().includes(q));
 
       const matchesType = filterType === "ALL" || p.jenis_properti === filterType;
