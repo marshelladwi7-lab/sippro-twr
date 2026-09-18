@@ -109,7 +109,7 @@ export function ValuationAnalyticsDashboard({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/80 pb-6">
         <div>
           <div className="flex items-center gap-2.5">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30">
               KEPI &amp; SPI 106
             </span>
             <span className="text-xs text-slate-400 font-mono">
@@ -126,10 +126,10 @@ export function ValuationAnalyticsDashboard({
 
         <div className="flex items-center gap-3">
           <div className="bg-slate-900/90 border border-slate-800 px-4 py-2.5 rounded-2xl flex items-center gap-3 shadow-lg">
-            <div className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
+            <div className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse" />
             <div>
               <div className="text-[10px] uppercase font-bold text-slate-400">Status Pangkalan Data</div>
-              <div className="text-xs font-mono font-bold text-amber-300">
+              <div className="text-xs font-mono font-bold text-blue-400">
                 {analytics.totalCount.toLocaleString("id-ID")} Data Terverifikasi
               </div>
             </div>
@@ -140,11 +140,11 @@ export function ValuationAnalyticsDashboard({
       {/* Key Metrics Executive Ribbon */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1 */}
-        <div className="bg-slate-900/60 backdrop-blur-md p-5 rounded-2xl border border-slate-800/80 shadow-lg space-y-1 hover:border-amber-500/30 transition-all group">
+        <div className="bg-slate-900/60 backdrop-blur-md p-5 rounded-2xl border border-slate-800/80 shadow-lg space-y-1 hover:border-blue-500/30 transition-all group">
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
             Rata-rata Nilai Tanah
           </span>
-          <div className="text-xl md:text-2xl font-black text-amber-400 font-mono tracking-tight group-hover:scale-105 transition-transform">
+          <div className="text-xl md:text-2xl font-black text-blue-400 font-mono tracking-tight group-hover:scale-105 transition-transform">
             Rp {analytics.avgPrice.toLocaleString("id-ID")}
             <span className="text-xs font-normal text-slate-400 font-sans ml-1">/m²</span>
           </div>
@@ -154,7 +154,7 @@ export function ValuationAnalyticsDashboard({
         </div>
 
         {/* Metric 2 */}
-        <div className="bg-slate-900/60 backdrop-blur-md p-5 rounded-2xl border border-slate-800/80 shadow-lg space-y-1 hover:border-amber-500/30 transition-all group">
+        <div className="bg-slate-900/60 backdrop-blur-md p-5 rounded-2xl border border-slate-800/80 shadow-lg space-y-1 hover:border-blue-500/30 transition-all group">
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
             Total Akumulasi Luas Tanah
           </span>
@@ -168,7 +168,7 @@ export function ValuationAnalyticsDashboard({
         </div>
 
         {/* Metric 3 */}
-        <div className="bg-slate-900/60 backdrop-blur-md p-5 rounded-2xl border border-slate-800/80 shadow-lg space-y-1 hover:border-amber-500/30 transition-all group">
+        <div className="bg-slate-900/60 backdrop-blur-md p-5 rounded-2xl border border-slate-800/80 shadow-lg space-y-1 hover:border-blue-500/30 transition-all group">
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
             Komposisi Tipe Properti
           </span>
@@ -177,14 +177,14 @@ export function ValuationAnalyticsDashboard({
           </div>
           <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden flex mt-2">
             <div
-              className="bg-sky-500 h-full"
+              className="bg-blue-500 h-full"
               style={{
                 width: `${Math.round((analytics.tanahBangunanCount / Math.max(1, analytics.totalCount)) * 100)}%`,
               }}
               title="Tanah & Bangunan"
             />
             <div
-              className="bg-amber-500 h-full"
+              className="bg-rose-500 h-full"
               style={{
                 width: `${Math.round((analytics.tanahKosongCount / Math.max(1, analytics.totalCount)) * 100)}%`,
               }}
@@ -194,11 +194,11 @@ export function ValuationAnalyticsDashboard({
         </div>
 
         {/* Metric 4 */}
-        <div className="bg-slate-900/60 backdrop-blur-md p-5 rounded-2xl border border-slate-800/80 shadow-lg space-y-1 hover:border-amber-500/30 transition-all group">
+        <div className="bg-slate-900/60 backdrop-blur-md p-5 rounded-2xl border border-slate-800/80 shadow-lg space-y-1 hover:border-blue-500/30 transition-all group">
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
             Kepemilikan Hak Milik (SHM)
           </span>
-          <div className="text-xl md:text-2xl font-black text-amber-300 font-mono tracking-tight">
+          <div className="text-xl md:text-2xl font-black text-blue-400 font-mono tracking-tight">
             {Math.round((analytics.legalityStats.SHM / Math.max(1, analytics.totalCount)) * 100)}%
             <span className="text-xs font-normal text-slate-400 font-sans ml-1.5">
               ({analytics.legalityStats.SHM} Unit)
@@ -234,10 +234,10 @@ export function ValuationAnalyticsDashboard({
               return (
                 <div
                   key={city.name}
-                  className="p-3 bg-slate-950/60 rounded-2xl border border-slate-800/60 hover:border-amber-500/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                  className="p-3 bg-slate-950/60 rounded-2xl border border-slate-800/60 hover:border-blue-500/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
                 >
                   <div className="min-w-[140px]">
-                    <div className="font-bold text-xs text-slate-200 group-hover:text-amber-300 transition-colors">
+                    <div className="font-bold text-xs text-slate-200 group-hover:text-blue-300 transition-colors">
                       {city.name}
                     </div>
                     <div className="text-[10px] text-slate-400 font-mono">
@@ -248,20 +248,20 @@ export function ValuationAnalyticsDashboard({
                   <div className="flex-1 w-full max-w-[160px] hidden md:block">
                     <div className="w-full bg-slate-800/80 h-2 rounded-full overflow-hidden">
                       <div
-                        className="bg-gradient-to-r from-amber-500 to-amber-300 h-full rounded-full transition-all duration-500"
+                        className="bg-gradient-to-r from-blue-600 to-sky-400 h-full rounded-full transition-all duration-500"
                         style={{ width: `${barPercent}%` }}
                       />
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between sm:justify-end gap-3">
-                    <span className="font-mono font-bold text-amber-400 text-xs whitespace-nowrap">
+                    <span className="font-mono font-bold text-blue-400 text-xs whitespace-nowrap">
                       Rp {city.avgPrice.toLocaleString("id-ID")}/m²
                     </span>
                     <button
                       type="button"
                       onClick={() => onSelectCityOnMap(city.name)}
-                      className="px-2.5 py-1 bg-slate-800 hover:bg-amber-500 text-slate-300 hover:text-slate-950 rounded-lg text-[10px] font-semibold transition-all cursor-pointer whitespace-nowrap active:scale-95"
+                      className="px-2.5 py-1 bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white rounded-lg text-[10px] font-semibold transition-all cursor-pointer whitespace-nowrap active:scale-95"
                     >
                       Buka Peta ↗
                     </button>
@@ -291,14 +291,14 @@ export function ValuationAnalyticsDashboard({
               {/* SHM */}
               <div className="flex items-center justify-between p-2.5 bg-slate-950/70 rounded-xl border border-slate-800/60">
                 <div className="flex items-center gap-2.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
                   <div>
                     <div className="text-xs font-bold text-white">Sertifikat Hak Milik (SHM)</div>
                     <div className="text-[10px] text-slate-400">Risiko Rendah • Haircut 10-15%</div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="font-mono font-bold text-xs text-amber-300">
+                  <span className="font-mono font-bold text-xs text-blue-400">
                     {analytics.legalityStats.SHM} Data
                   </span>
                   <div className="text-[9px] text-slate-400">
@@ -359,7 +359,7 @@ export function ValuationAnalyticsDashboard({
             <div className="grid grid-cols-2 gap-2 pt-1 text-xs">
               <div className="p-2.5 bg-slate-950/60 rounded-xl border border-slate-800/60 font-mono">
                 <span className="text-[10px] uppercase font-bold text-slate-400 block font-sans">Persegi (Optimal)</span>
-                <span className="font-bold text-amber-300 text-sm">{analytics.tapakStats.PERSEGI} Unit</span>
+                <span className="font-bold text-blue-400 text-sm">{analytics.tapakStats.PERSEGI} Unit</span>
                 <span className="text-[9px] text-slate-400 block font-sans mt-0.5">Penyesuaian 0%</span>
               </div>
               <div className="p-2.5 bg-slate-950/60 rounded-xl border border-slate-800/60 font-mono">

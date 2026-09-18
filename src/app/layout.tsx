@@ -23,7 +23,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id" className="dark" suppressHydrationWarning>
-      <body className="font-sans antialiased min-h-screen bg-slate-950 text-slate-100 selection:bg-amber-500/30 selection:text-amber-200 transition-colors duration-150">
+      <body className="font-sans antialiased min-h-screen bg-slate-950 text-slate-100 selection:bg-blue-600/30 selection:text-blue-200 transition-colors duration-150">
         <ThemeProvider>
           <AuthProvider>
             <ToastProvider>{children}</ToastProvider>

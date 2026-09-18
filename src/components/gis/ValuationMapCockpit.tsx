@@ -762,12 +762,12 @@ export function ValuationMapCockpit({
             className={cn(
               "flex items-center gap-1.5 px-3 py-1.5 rounded-xl backdrop-blur-md border shadow-md text-[11px] font-semibold transition-all cursor-pointer",
               isAddMode
-                ? "bg-amber-500 text-slate-950 border-amber-400 ring-2 ring-amber-400/50 shadow-amber-500/20 font-bold"
+                ? "bg-blue-600 text-white border-blue-500 ring-2 ring-blue-500/50 shadow-blue-500/20 font-bold"
                 : "bg-white/95 dark:bg-slate-900/95 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
             )}
             title="Tambah Titik Data Baru di Peta (atau Klik Kanan di peta)"
           >
-            <PlusCircle className={cn("w-3.5 h-3.5", isAddMode ? "text-slate-950" : "text-amber-500")} />
+            <PlusCircle className={cn("w-3.5 h-3.5", isAddMode ? "text-white" : "text-blue-500")} />
             <span>{isAddMode ? "Mode Tambah Aktif" : "+ Titik Data"}</span>
           </button>
         )}
@@ -775,13 +775,13 @@ export function ValuationMapCockpit({
 
       {/* Floating Active POI Mode Alert Banner */}
       {isAddMode && (
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 bg-amber-500 text-slate-950 px-4 py-2 rounded-xl shadow-xl font-bold text-xs flex items-center gap-2.5 border border-amber-300 animate-in fade-in slide-in-from-top-2">
-          <MapPin className="w-4 h-4 text-slate-950" />
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 bg-blue-600 text-white px-4 py-2 rounded-xl shadow-xl font-bold text-xs flex items-center gap-2.5 border border-blue-400 animate-in fade-in slide-in-from-top-2">
+          <MapPin className="w-4 h-4 text-white" />
           <span>Klik lokasi mana saja pada peta untuk mendaftarkan titik baru (atau Klik Kanan)</span>
           <button
             type="button"
             onClick={() => setIsAddMode(false)}
-            className="ml-2 bg-slate-950 hover:bg-slate-800 text-white px-2.5 py-0.5 rounded-lg text-[11px] transition-all cursor-pointer"
+            className="ml-2 bg-slate-900 hover:bg-slate-800 text-white px-2.5 py-0.5 rounded-lg text-[11px] transition-all cursor-pointer"
           >
             Batal
           </button>

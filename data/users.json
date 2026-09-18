@@ -1,0 +1,225 @@
+[
+  {
+    "id": "usr-432536",
+    "name": "Analis Agunan Senior",
+    "email": "analis_1789698432536@twr-valuation.id",
+    "role": "reviewer",
+    "roleTitle": "Credit Risk & Collateral Reviewer",
+    "institution": "PT Bank Danamon Tbk",
+    "phone": "+62 811-2233-4455",
+    "licenseNo": "MAPPI Cert #9921",
+    "assignedBranch": "Credit Risk Dept",
+    "status": "ACTIVE",
+    "password": "PasswordAgunan2026!",
+    "permissions": [
+      "REVIEW_VALUATION",
+      "VALIDATE_HAIRCUT",
+      "EXPORT_DATA",
+      "PRINT_REPORT"
+    ],
+    "rights": {
+      "canCreatePoi": false,
+      "canEditValuation": false,
+      "canDeletePoi": false,
+      "canExportData": true,
+      "canAccessAnalytics": true,
+      "canManageUsers": false
+    },
+    "prohibitions": {
+      "prohibitSelfAppraisal": true,
+      "prohibitUnwatermarkedExport": true,
+      "prohibitUnauditedPriceOverride": true,
+      "prohibitMassDelete": true
+    },
+    "createdAt": "2026-09-18T02:27:12.536Z",
+    "lastActive": "Baru dibuat",
+    "lastLoginIp": "-"
+  },
+  {
+    "id": "usr-admin-01",
+    "name": "Totok Warsito, S.E., M.Ec.Dev., MAPPI (Cert.)",
+    "email": "admin@twr.co.id",
+    "role": "admin",
+    "roleTitle": "Managing Partner & Penilai Publik",
+    "institution": "KJPP Totok Warsito dan Rekan",
+    "phone": "+62 811-2345-678",
+    "licenseNo": "MAPPI 98-S-00812 / KMK No. 512/KM.1/2014",
+    "assignedBranch": "Kantor Pusat Jakarta & Cabang Bekasi",
+    "status": "ACTIVE",
+    "password": "password123",
+    "permissions": [
+      "MANAGE_USERS",
+      "EDIT_DATABASE",
+      "VALUATION_FULL",
+      "EDIT_KKP",
+      "APPROVE_KKP",
+      "REVIEW_VALUATION",
+      "VALIDATE_HAIRCUT",
+      "ADD_COMPARABLE",
+      "INSPECT_PROPERTIES",
+      "EXPORT_DATA",
+      "IMPORT_DATA",
+      "PRINT_REPORT"
+    ],
+    "rights": {
+      "canCreatePoi": true,
+      "canEditValuation": true,
+      "canDeletePoi": true,
+      "canExportData": true,
+      "canAccessAnalytics": true,
+      "canManageUsers": true
+    },
+    "prohibitions": {
+      "prohibitSelfAppraisal": true,
+      "prohibitUnwatermarkedExport": false,
+      "prohibitUnauditedPriceOverride": false,
+      "prohibitMassDelete": false
+    },
+    "createdAt": "2024-01-15T08:00:00.000Z",
+    "lastActive": "Baru saja aktif",
+    "lastLoginIp": "103.28.114.22"
+  },
+  {
+    "id": "usr-penilai-01",
+    "name": "Budi Santoso, S.T., MAPPI (Cert.)",
+    "email": "penilai@twr.co.id",
+    "role": "penilai",
+    "roleTitle": "Penilai Properti Madya (SPI 106)",
+    "institution": "KJPP Totok Warsito dan Rekan",
+    "phone": "+62 812-3456-7890",
+    "licenseNo": "MAPPI 14-P-02451",
+    "assignedBranch": "Cabang Cikarang & Karawang",
+    "status": "ACTIVE",
+    "password": "password123",
+    "permissions": [
+      "VALUATION_FULL",
+      "EDIT_KKP",
+      "APPROVE_KKP",
+      "ADD_COMPARABLE",
+      "INSPECT_PROPERTIES",
+      "EXPORT_DATA",
+      "IMPORT_DATA",
+      "PRINT_REPORT"
+    ],
+    "rights": {
+      "canCreatePoi": true,
+      "canEditValuation": true,
+      "canDeletePoi": true,
+      "canExportData": true,
+      "canAccessAnalytics": true,
+      "canManageUsers": false
+    },
+    "prohibitions": {
+      "prohibitSelfAppraisal": true,
+      "prohibitUnwatermarkedExport": true,
+      "prohibitUnauditedPriceOverride": true,
+      "prohibitMassDelete": true
+    },
+    "createdAt": "2024-03-10T09:30:00.000Z",
+    "lastActive": "15 menit lalu",
+    "lastLoginIp": "182.253.16.45"
+  },
+  {
+    "id": "usr-reviewer-01",
+    "name": "Hendra Wijaya, S.E.",
+    "email": "reviewer@bankmandiri.co.id",
+    "role": "reviewer",
+    "roleTitle": "VP Special Asset & Collateral Risk",
+    "institution": "PT Bank Mandiri (Persero) Tbk",
+    "phone": "+62 813-9876-5432",
+    "licenseNo": "FRM / Certified Banking Risk Officer",
+    "assignedBranch": "Wholesale Credit Risk Dept",
+    "status": "ACTIVE",
+    "password": "password123",
+    "permissions": [
+      "REVIEW_VALUATION",
+      "VALIDATE_HAIRCUT",
+      "EXPORT_DATA",
+      "PRINT_REPORT"
+    ],
+    "rights": {
+      "canCreatePoi": false,
+      "canEditValuation": false,
+      "canDeletePoi": false,
+      "canExportData": true,
+      "canAccessAnalytics": true,
+      "canManageUsers": false
+    },
+    "prohibitions": {
+      "prohibitSelfAppraisal": true,
+      "prohibitUnwatermarkedExport": true,
+      "prohibitUnauditedPriceOverride": true,
+      "prohibitMassDelete": true
+    },
+    "createdAt": "2024-05-02T14:15:00.000Z",
+    "lastActive": "2 jam lalu",
+    "lastLoginIp": "103.10.67.89"
+  },
+  {
+    "id": "usr-surveyor-01",
+    "name": "Ahmad Fauzi",
+    "email": "surveyor@twr.co.id",
+    "role": "surveyor",
+    "roleTitle": "Tenaga Inspeksi Lapangan (GIS & Geotagging)",
+    "institution": "KJPP Totok Warsito dan Rekan",
+    "phone": "+62 856-7890-1234",
+    "licenseNo": "Teknisi Geospasial Pratama",
+    "assignedBranch": "Area Operasional Jabodetabek",
+    "status": "ACTIVE",
+    "password": "SurveyorBaru2026#",
+    "permissions": [
+      "ADD_COMPARABLE",
+      "INSPECT_PROPERTIES"
+    ],
+    "rights": {
+      "canCreatePoi": true,
+      "canEditValuation": false,
+      "canDeletePoi": false,
+      "canExportData": false,
+      "canAccessAnalytics": false,
+      "canManageUsers": false
+    },
+    "prohibitions": {
+      "prohibitSelfAppraisal": true,
+      "prohibitUnwatermarkedExport": true,
+      "prohibitUnauditedPriceOverride": true,
+      "prohibitMassDelete": true
+    },
+    "createdAt": "2024-06-20T10:00:00.000Z",
+    "lastActive": "Hari ini, 07:15",
+    "lastLoginIp": "114.124.200.11"
+  },
+  {
+    "id": "usr-guest-01",
+    "name": "Mitra Evaluator Publik",
+    "email": "tamu@publik.id",
+    "role": "guest",
+    "roleTitle": "Akses Eksplorasi Demo & Observasi",
+    "institution": "Mitra Evaluator Properti",
+    "phone": "-",
+    "assignedBranch": "Sandbox Nasional",
+    "status": "ACTIVE",
+    "password": "password123",
+    "permissions": [
+      "EXPORT_DATA",
+      "PRINT_REPORT"
+    ],
+    "rights": {
+      "canCreatePoi": false,
+      "canEditValuation": false,
+      "canDeletePoi": false,
+      "canExportData": false,
+      "canAccessAnalytics": true,
+      "canManageUsers": false
+    },
+    "prohibitions": {
+      "prohibitSelfAppraisal": true,
+      "prohibitUnwatermarkedExport": true,
+      "prohibitUnauditedPriceOverride": true,
+      "prohibitMassDelete": true
+    },
+    "createdAt": "2024-08-01T12:00:00.000Z",
+    "lastActive": "Kemarin",
+    "lastLoginIp": "36.88.92.140"
+  }
+]

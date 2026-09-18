@@ -180,8 +180,8 @@ export function ValuationMap({
             isSelected
               ? "bg-rose-600 ring-2 ring-rose-400 scale-125 z-20 shadow-rose-500/40"
               : isKosong
-              ? "bg-amber-600 hover:bg-amber-500 shadow-amber-500/30"
-              : "bg-sky-600 hover:bg-sky-500 shadow-sky-500/30"
+              ? "bg-rose-600 hover:bg-rose-500 shadow-rose-500/30"
+              : "bg-blue-600 hover:bg-blue-500 shadow-blue-500/30"
           }">
             ${p.legacy_no ? p.legacy_no : "•"}
           </div>
@@ -237,10 +237,10 @@ export function ValuationMap({
         const tempEl = document.createElement("div");
         tempEl.innerHTML = `
           <div class="flex flex-col items-center animate-bounce">
-            <div class="px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[10px] font-mono font-bold shadow-lg border border-amber-300 whitespace-nowrap mb-1">
+            <div class="px-2.5 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-mono font-bold shadow-lg border border-blue-400 whitespace-nowrap mb-1">
               ${lat.toFixed(5)}, ${lng.toFixed(5)}
             </div>
-            <div class="w-7 h-7 rounded-full bg-amber-400 border-2 border-white shadow-xl flex items-center justify-center text-slate-950 font-bold ring-2 ring-amber-300">
+            <div class="w-7 h-7 rounded-full bg-blue-600 border-2 border-white shadow-xl flex items-center justify-center text-white font-bold ring-2 ring-blue-400">
               📍
             </div>
           </div>
@@ -286,7 +286,7 @@ export function ValuationMap({
           el.innerHTML = `
             <div class="relative flex items-center justify-center">
               <div class="pin-badge w-6 h-6 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[9px] font-black text-white transition-all ${
-                isKosong ? "bg-amber-600 hover:bg-amber-500 shadow-amber-500/30" : "bg-sky-600 hover:bg-sky-500 shadow-sky-500/30"
+                isKosong ? "bg-rose-600 hover:bg-rose-500 shadow-rose-500/30" : "bg-blue-600 hover:bg-blue-500 shadow-blue-500/30"
               }">
                 ${p.legacy_no ? p.legacy_no : "•"}
               </div>
@@ -323,7 +323,7 @@ export function ValuationMap({
         const badge = prev.el.querySelector(".pin-badge");
         if (badge) {
           badge.className = `pin-badge w-6 h-6 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[9px] font-black text-white transition-all ${
-            isKosong ? "bg-amber-600 hover:bg-amber-500 shadow-amber-500/30" : "bg-sky-600 hover:bg-sky-500 shadow-sky-500/30"
+            isKosong ? "bg-rose-600 hover:bg-rose-500 shadow-rose-500/30" : "bg-blue-600 hover:bg-blue-500 shadow-blue-500/30"
           }`;
         }
         const ping = prev.el.querySelector(".animate-ping");
@@ -338,12 +338,12 @@ export function ValuationMap({
         const badge = current.el.querySelector(".pin-badge");
         if (badge) {
           badge.className =
-            "pin-badge w-6 h-6 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[9px] font-black text-slate-950 transition-all bg-amber-400 ring-2 ring-amber-300 scale-125 z-20 shadow-amber-500/50";
+            "pin-badge w-6 h-6 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[9px] font-black text-white transition-all bg-blue-500 ring-2 ring-blue-300 scale-125 z-20 shadow-blue-500/50";
         }
         const pingWrapper = current.el.querySelector(".relative");
         if (pingWrapper && !current.el.querySelector(".animate-ping")) {
           const pingDiv = document.createElement("div");
-          pingDiv.className = "absolute w-8 h-8 rounded-full bg-amber-400/30 animate-ping";
+          pingDiv.className = "absolute w-8 h-8 rounded-full bg-blue-400/40 animate-ping";
           pingWrapper.prepend(pingDiv);
         }
       }
@@ -388,11 +388,11 @@ export function ValuationMap({
       {/* Floating Map Legend & Geotag Hint */}
       <div className="absolute top-3 left-3 bg-slate-900/95 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-lg border border-slate-800 text-xs font-medium text-slate-300 flex items-center space-x-3 pointer-events-none z-10">
         <div className="flex items-center space-x-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-sky-500 inline-block shadow-xs shadow-sky-500/50"></span>
+          <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block shadow-xs shadow-blue-500/50"></span>
           <span className="text-[11px] font-semibold text-slate-200">Tanah & Bangunan</span>
         </div>
         <div className="flex items-center space-x-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block shadow-xs shadow-amber-500/50"></span>
+          <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block shadow-xs shadow-rose-500/50"></span>
           <span className="text-[11px] font-semibold text-slate-200">Tanah Kosong</span>
         </div>
         <div className="text-slate-400 text-[10px] pl-2 border-l border-slate-800 font-mono hidden sm:inline">
@@ -402,7 +402,7 @@ export function ValuationMap({
 
       {/* Active Add Mode Floating Banner */}
       {isAddMode && (
-        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 bg-amber-500 text-slate-950 px-4 py-2 rounded-xl shadow-2xl font-bold text-xs flex items-center gap-2 border border-amber-300 animate-in fade-in slide-in-from-top-2">
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 bg-blue-600 text-white px-4 py-2 rounded-xl shadow-2xl font-bold text-xs flex items-center gap-2 border border-blue-400 animate-in fade-in slide-in-from-top-2">
           <span>📍 Klik di mana saja pada peta untuk menambah data titik baru</span>
           <button
             type="button"
@@ -422,8 +422,8 @@ export function ValuationMap({
           onClick={() => setIsAddMode((prev) => !prev)}
           className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer border ${
             isAddMode
-              ? "bg-amber-500 text-slate-950 border-amber-300 ring-2 ring-amber-400/50"
-              : "bg-slate-900/95 hover:bg-slate-800 text-emerald-400 border-slate-800"
+              ? "bg-blue-600 text-white border-blue-400 ring-2 ring-blue-400/50"
+              : "bg-slate-900/95 hover:bg-slate-800 text-blue-400 border-slate-800"
           }`}
           title="Tambah Titik Data Baru di Peta"
         >
@@ -448,7 +448,7 @@ export function ValuationMap({
             onClick={() => handleLayerChange("street")}
             className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
               activeBaseLayer === "street"
-                ? "bg-slate-800 text-white shadow-xs border border-slate-700"
+                ? "bg-blue-600 text-white shadow-xs border border-blue-500"
                 : "text-slate-400 hover:text-white hover:bg-slate-800/40"
             }`}
             title="Peta Jalan Esri World Street Map"
@@ -460,7 +460,7 @@ export function ValuationMap({
             onClick={() => handleLayerChange("satellite")}
             className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
               activeBaseLayer === "satellite"
-                ? "bg-emerald-600 text-white shadow-xs"
+                ? "bg-blue-600 text-white shadow-xs border border-blue-500"
                 : "text-slate-400 hover:text-white hover:bg-slate-800/40"
             }`}
             title="Foto Satelit Esri World Imagery"
@@ -472,7 +472,7 @@ export function ValuationMap({
             onClick={() => handleLayerChange("dark")}
             className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
               activeBaseLayer === "dark"
-                ? "bg-slate-800 text-white shadow-xs border border-slate-700"
+                ? "bg-blue-600 text-white shadow-xs border border-blue-500"
                 : "text-slate-400 hover:text-white hover:bg-slate-800/40"
             }`}
             title="Peta Gelap Esri Dark Canvas"
@@ -484,7 +484,7 @@ export function ValuationMap({
             onClick={() => handleLayerChange("light")}
             className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
               activeBaseLayer === "light"
-                ? "bg-slate-800 text-white shadow-xs border border-slate-700"
+                ? "bg-blue-600 text-white shadow-xs border border-blue-500"
                 : "text-slate-400 hover:text-white hover:bg-slate-800/40"
             }`}
             title="Peta Terang Esri Light Canvas"
@@ -502,8 +502,8 @@ export function ValuationMap({
               <span
                 className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
                   activePopupProperty.jenis_properti === "TANAH_KOSONG"
-                    ? "bg-amber-950/80 text-amber-400 border-amber-800/80"
-                    : "bg-sky-950/80 text-sky-400 border-sky-800/80"
+                    ? "bg-rose-950/80 text-rose-300 border-rose-800/80"
+                    : "bg-blue-950/80 text-blue-300 border-blue-800/80"
                 }`}
               >
                 Data #{activePopupProperty.legacy_no || activePopupProperty.id} • {activePopupProperty.jenis_properti}
@@ -515,7 +515,7 @@ export function ValuationMap({
                 {activePopupProperty.desa_kelurahan ? `${activePopupProperty.desa_kelurahan}, ` : ""}
                 {activePopupProperty.kecamatan}, {activePopupProperty.kota_kab}
               </p>
-              <div className="text-[11px] font-mono text-amber-400 flex items-center gap-1.5 mt-1 bg-slate-950/60 px-2 py-0.5 rounded-md border border-slate-800/80 w-fit">
+              <div className="text-[11px] font-mono text-blue-300 flex items-center gap-1.5 mt-1 bg-slate-950/60 px-2 py-0.5 rounded-md border border-slate-800/80 w-fit">
                 <span>📍 WGS84:</span>
                 <span className="font-semibold">{activePopupProperty.latitude.toFixed(6)}, {activePopupProperty.longitude.toFixed(6)}</span>
               </div>
@@ -531,7 +531,7 @@ export function ValuationMap({
           <div className="grid grid-cols-2 gap-2 text-xs bg-slate-950/80 p-3 rounded-xl border border-slate-800/80 font-mono">
             <div>
               <span className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold block font-sans">Kisaran Nilai Tanah</span>
-              <span className="font-bold text-amber-400 text-sm">
+              <span className="font-bold text-blue-400 text-sm">
                 {activePopupProperty.kisaran_nilai_tanah
                   ? `Rp ${activePopupProperty.kisaran_nilai_tanah.toLocaleString("id-ID")}/m²`
                   : "Belum Dinilai"}
@@ -566,7 +566,7 @@ export function ValuationMap({
           <div className="flex items-center space-x-2 pt-1">
             <button
               onClick={() => onEditProperty(activePopupProperty)}
-              className="flex-1 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold transition-all shadow-md active:scale-[0.98] cursor-pointer flex items-center justify-center space-x-1.5"
+              className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-md active:scale-[0.98] cursor-pointer flex items-center justify-center space-x-1.5"
             >
               <span>✏️</span>
               <span>Edit Data</span>
@@ -585,7 +585,7 @@ export function ValuationMap({
 
       {/* Bottom Right Live Cursor Coordinate Display */}
       <div className="absolute bottom-3 right-3 bg-slate-900/95 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-md border border-slate-800 text-[11px] font-mono text-slate-400 z-10 hidden sm:flex items-center space-x-2">
-        <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+        <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
         <span>
           {hoverCoordinate
             ? `Lintang: ${hoverCoordinate.lat.toFixed(6)} | Bujur: ${hoverCoordinate.lng.toFixed(6)}`

@@ -18,7 +18,7 @@ const ValuationMap = dynamic(
     ssr: false,
     loading: () => (
       <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900 text-slate-400 text-xs min-h-[450px]">
-        <div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-2"></div>
         <span>Memuat Peta Spasial (Esri & OpenStreetMap)...</span>
       </div>
     ),
@@ -173,7 +173,7 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
       <header className="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-5 py-2.5 flex items-center justify-between shadow-xl z-30 shrink-0">
         <div className="flex items-center space-x-3.5">
           <TwrLogo size="sm" showTagline={true} />
-          <span className="hidden md:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 font-mono">
+          <span className="hidden md:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-600/10 text-blue-400 border border-blue-500/30 font-mono">
             SPI 106 &amp; KEPI
           </span>
         </div>
@@ -186,7 +186,7 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
               onClick={() => setViewMode("map")}
               className={`px-3 py-1.5 rounded-lg font-semibold transition-all flex items-center space-x-1.5 cursor-pointer ${
                 viewMode === "map"
-                  ? "bg-slate-800 text-amber-300 shadow-xs border border-slate-700"
+                  ? "bg-slate-800 text-blue-400 shadow-xs border border-slate-700"
                   : "text-slate-400 hover:text-white hover:bg-slate-800/40"
               }`}
             >
@@ -197,7 +197,7 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
               onClick={() => setViewMode("analytics")}
               className={`px-3 py-1.5 rounded-lg font-semibold transition-all flex items-center space-x-1.5 cursor-pointer ${
                 viewMode === "analytics"
-                  ? "bg-slate-800 text-amber-300 shadow-xs border border-slate-700"
+                  ? "bg-slate-800 text-blue-400 shadow-xs border border-slate-700"
                   : "text-slate-400 hover:text-white hover:bg-slate-800/40"
               }`}
             >
@@ -208,7 +208,7 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
               onClick={() => setViewMode("table")}
               className={`px-3 py-1.5 rounded-lg font-semibold transition-all flex items-center space-x-1.5 cursor-pointer ${
                 viewMode === "table"
-                  ? "bg-slate-800 text-amber-300 shadow-xs border border-slate-700"
+                  ? "bg-slate-800 text-blue-400 shadow-xs border border-slate-700"
                   : "text-slate-400 hover:text-white hover:bg-slate-800/40"
               }`}
             >
@@ -219,7 +219,7 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
               onClick={() => setViewMode("import")}
               className={`px-3 py-1.5 rounded-lg font-semibold transition-all flex items-center space-x-1.5 cursor-pointer ${
                 viewMode === "import"
-                  ? "bg-slate-800 text-amber-300 shadow-xs border border-slate-700"
+                  ? "bg-slate-800 text-blue-400 shadow-xs border border-slate-700"
                   : "text-slate-400 hover:text-white hover:bg-slate-800/40"
               }`}
             >
@@ -234,7 +234,7 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
               setEditingProperty(null);
               setIsModalOpen(true);
             }}
-            className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold transition-all shadow-md shadow-amber-950/40 active:scale-[0.98] flex items-center space-x-1.5 cursor-pointer"
+            className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-600/20 active:scale-[0.98] flex items-center space-x-1.5 cursor-pointer"
           >
             <span>➕</span>
             <span className="hidden sm:inline">Tambah Data</span>
@@ -264,7 +264,7 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
           <button
             onClick={() => setIsUserModalOpen(true)}
             title="Kelola Peran & Akses Pengguna (RBAC)"
-            className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-amber-300 hover:text-amber-200 rounded-xl text-xs font-semibold transition-all border border-amber-500/30 shadow-xs flex items-center space-x-1.5 cursor-pointer"
+            className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-blue-300 hover:text-blue-200 rounded-xl text-xs font-semibold transition-all border border-blue-500/30 shadow-xs flex items-center space-x-1.5 cursor-pointer"
           >
             <span>👥</span>
             <span className="hidden xl:inline">Tim &amp; Akses</span>
@@ -296,7 +296,7 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
           </div>
           <div className="hidden sm:flex items-center space-x-2">
             <span className="text-slate-500 text-[11px] font-medium">Rata-rata Nilai Tanah:</span>
-            <span className="font-extrabold text-amber-400 font-mono text-sm">
+            <span className="font-extrabold text-blue-400 font-mono text-sm">
               Rp {metrics.avgPrice.toLocaleString("id-ID")}/m²
             </span>
           </div>
@@ -315,7 +315,7 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
         </div>
 
         <div className="flex items-center space-x-2 text-[11px] text-slate-400 shrink-0 font-mono">
-          <span className="w-2 h-2 rounded-full bg-amber-400 inline-block animate-pulse"></span>
+          <span className="w-2 h-2 rounded-full bg-blue-400 inline-block animate-pulse"></span>
           <span>Pangkalan Data Aktif ({properties.length.toLocaleString("id-ID")} Record)</span>
         </div>
       </div>
@@ -380,7 +380,7 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
                     placeholder="Cari jalan, kelurahan, surveyor..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-9 pr-8 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-all"
+                    className="w-full pl-9 pr-8 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
                   />
                   <span className="absolute left-3 top-2.5 text-slate-500 text-xs">🔍</span>
                   {searchTerm && (
@@ -409,7 +409,7 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
                     onClick={() => setFilterType("TANAH_BANGUNAN")}
                     className={`px-3 py-1 rounded-lg font-semibold whitespace-nowrap transition-all cursor-pointer ${
                       filterType === "TANAH_BANGUNAN"
-                        ? "bg-sky-950 text-sky-400 border border-sky-800 shadow-xs"
+                        ? "bg-blue-950 text-blue-300 border border-blue-800 shadow-xs"
                         : "bg-slate-950/60 text-slate-400 hover:text-slate-200 border border-transparent"
                     }`}
                   >
@@ -419,7 +419,7 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
                     onClick={() => setFilterType("TANAH_KOSONG")}
                     className={`px-3 py-1 rounded-lg font-semibold whitespace-nowrap transition-all cursor-pointer ${
                       filterType === "TANAH_KOSONG"
-                        ? "bg-amber-950 text-amber-400 border border-amber-800 shadow-xs"
+                        ? "bg-rose-950 text-rose-300 border border-rose-800 shadow-xs"
                         : "bg-slate-950/60 text-slate-400 hover:text-slate-200 border border-transparent"
                     }`}
                   >
@@ -432,7 +432,7 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
                   <select
                     value={filterRegion}
                     onChange={(e) => setFilterRegion(e.target.value)}
-                    className="bg-slate-950 border border-slate-700/80 rounded-lg text-[11px] px-2.5 py-1 text-slate-300 focus:outline-none focus:ring-1 focus:ring-amber-500/30 cursor-pointer"
+                    className="bg-slate-950 border border-slate-700/80 rounded-lg text-[11px] px-2.5 py-1 text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500/30 cursor-pointer"
                   >
                     <option value="ALL">Semua Provinsi</option>
                     {regionOptions.map((r) => (
@@ -460,7 +460,7 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
                         onClick={() => setSelectedProperty(p)}
                         className={`p-3 rounded-xl cursor-pointer transition-all duration-150 text-xs space-y-1.5 border-l-2 ${
                           isSelected
-                            ? "bg-slate-800/90 border-amber-400 shadow-md ring-1 ring-slate-700/60"
+                            ? "bg-slate-800/90 border-blue-500 shadow-md ring-1 ring-slate-700/60"
                             : "hover:bg-slate-800/40 border-transparent"
                         }`}
                       >
@@ -472,8 +472,8 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
                           <span
                             className={`text-[9px] font-bold px-2 py-0.5 rounded-full shrink-0 border ${
                               isKosong
-                                ? "bg-amber-950/80 text-amber-400 border-amber-800/60"
-                                : "bg-sky-950/80 text-sky-400 border-sky-800/60"
+                                ? "bg-rose-950/80 text-rose-300 border-rose-800/60"
+                                : "bg-blue-950/80 text-blue-300 border-blue-800/60"
                             }`}
                           >
                             {isKosong ? "Tanah" : "T & B"}
@@ -491,7 +491,7 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
                         </div>
 
                         <div className="flex items-center justify-between pt-1 border-t border-slate-800/50">
-                          <span className="font-mono font-bold text-amber-400 text-xs">
+                          <span className="font-mono font-bold text-blue-400 text-xs">
                             {p.kisaran_nilai_tanah
                               ? `Rp ${p.kisaran_nilai_tanah.toLocaleString("id-ID")}/m²`
                               : "Belum Dinilai"}

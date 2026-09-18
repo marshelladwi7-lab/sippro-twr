@@ -1,0 +1,97 @@
+[
+  {
+    "actorName": "Administrator",
+    "actorRole": "admin",
+    "action": "Penonaktifan / Hapus Pengguna",
+    "targetUser": "Staf Magang Valuasi",
+    "detail": "Akun magang_1789698432569@domain.com (guest) dihapus dari sistem",
+    "kepiCompliance": "AUDITED",
+    "ipAddress": "127.0.0.1",
+    "id": "aud-1789698432572",
+    "timestamp": "18 Sep 2026, 09.27"
+  },
+  {
+    "actorName": "Administrator",
+    "actorRole": "admin",
+    "action": "Pendaftaran Pengguna Baru",
+    "targetUser": "Staf Magang Valuasi",
+    "detail": "Akun baru dibuat dengan peran: guest (magang_1789698432569@domain.com)",
+    "kepiCompliance": "COMPLIANT",
+    "ipAddress": "127.0.0.1",
+    "id": "aud-1789698432570",
+    "timestamp": "18 Sep 2026, 09.27"
+  },
+  {
+    "actorName": "Administrator",
+    "actorRole": "admin",
+    "action": "Pembaruan Profil Pengguna",
+    "targetUser": "Budi Santoso, S.T., MAPPI (Cert.)",
+    "detail": "Pembaruan data akun: status=ACTIVE, role=penilai",
+    "kepiCompliance": "COMPLIANT",
+    "ipAddress": "127.0.0.1",
+    "id": "aud-1789698432567",
+    "timestamp": "18 Sep 2026, 09.27"
+  },
+  {
+    "actorName": "Administrator",
+    "actorRole": "admin",
+    "action": "Reset Kata Sandi Pengguna",
+    "targetUser": "Ahmad Fauzi",
+    "detail": "Kata sandi direset secara administratif untuk surveyor@twr.co.id",
+    "kepiCompliance": "COMPLIANT",
+    "ipAddress": "127.0.0.1",
+    "id": "aud-1789698432564",
+    "timestamp": "18 Sep 2026, 09.27"
+  },
+  {
+    "actorName": "Administrator",
+    "actorRole": "admin",
+    "action": "Pendaftaran Pengguna Baru",
+    "targetUser": "Analis Agunan Senior",
+    "detail": "Akun baru dibuat dengan peran: reviewer (analis_1789698432536@twr-valuation.id)",
+    "kepiCompliance": "COMPLIANT",
+    "ipAddress": "127.0.0.1",
+    "id": "aud-1789698432537",
+    "timestamp": "18 Sep 2026, 09.27"
+  },
+  {
+    "id": "aud-01",
+    "timestamp": "18 Sep 2026 09:10",
+    "actorName": "Totok Warsito (Admin)",
+    "actorRole": "admin",
+    "action": "Governance Policy Check",
+    "detail": "Audit kepatuhan KEPI dan POJK 40/POJK.03/2019 berhasil diverifikasi",
+    "kepiCompliance": "COMPLIANT",
+    "ipAddress": "103.28.114.22"
+  },
+  {
+    "id": "aud-02",
+    "timestamp": "18 Sep 2026 03:05",
+    "actorName": "Budi Santoso",
+    "actorRole": "penilai",
+    "action": "Login Sesi Aman",
+    "detail": "Otentikasi berhasil via HTTP-only cookie berenkripsi",
+    "kepiCompliance": "COMPLIANT",
+    "ipAddress": "182.253.16.45"
+  },
+  {
+    "id": "aud-03",
+    "timestamp": "18 Sep 2026 02:40",
+    "actorName": "Budi Santoso",
+    "actorRole": "penilai",
+    "action": "Ekspor Spreadsheet",
+    "detail": "Unduh file Excel resmi Bank Data 1.511 titik dengan stempel metadata",
+    "kepiCompliance": "COMPLIANT",
+    "ipAddress": "182.253.16.45"
+  },
+  {
+    "id": "aud-04",
+    "timestamp": "17 Sep 2026 21:15",
+    "actorName": "Ahmad Fauzi",
+    "actorRole": "surveyor",
+    "action": "Tambah Titik Geotagging",
+    "detail": "Penambahan koordinat objek Lat: -6.395972, Lng: 107.173722 (Cikarang)",
+    "kepiCompliance": "COMPLIANT",
+    "ipAddress": "114.124.200.11"
+  }
+]

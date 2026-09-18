@@ -92,7 +92,7 @@ export function BatchExcelUploader({ onIngestionComplete }: BatchExcelUploaderPr
         <div>
           <h3 className="text-base font-bold text-white tracking-tight flex items-center space-x-2">
             <span>Import Data & Pangkalan Data Properti</span>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-950/80 text-amber-400 border border-amber-800/80">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-950/80 text-blue-400 border border-blue-800/80">
               SIPPRO-TWR
             </span>
           </h3>
@@ -106,7 +106,7 @@ export function BatchExcelUploader({ onIngestionComplete }: BatchExcelUploaderPr
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
-        className="border-2 border-dashed border-slate-700/80 hover:border-amber-500/80 rounded-2xl p-8 text-center cursor-pointer transition-all duration-200 bg-slate-950/60 hover:bg-amber-950/20 group"
+        className="border-2 border-dashed border-slate-700/80 hover:border-blue-500/80 rounded-2xl p-8 text-center cursor-pointer transition-all duration-200 bg-slate-950/60 hover:bg-blue-950/20 group"
       >
         <input
           type="file"
@@ -115,7 +115,7 @@ export function BatchExcelUploader({ onIngestionComplete }: BatchExcelUploaderPr
           accept=".xlsx, .xls, .kml"
           className="hidden"
         />
-        <div className="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 text-amber-400 flex items-center justify-center mx-auto mb-3 text-xl group-hover:scale-110 group-hover:border-amber-500 transition-all shadow-xs">
+        <div className="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 text-blue-400 flex items-center justify-center mx-auto mb-3 text-xl group-hover:scale-110 group-hover:border-blue-500 transition-all shadow-xs">
           📥
         </div>
         <div className="text-sm font-bold text-slate-200">
@@ -127,20 +127,20 @@ export function BatchExcelUploader({ onIngestionComplete }: BatchExcelUploaderPr
       </div>
 
       {importSummary && (
-        <div className="bg-amber-950/40 border border-amber-800/80 rounded-2xl p-5 space-y-3">
-          <div className="flex items-center space-x-2 text-amber-300 font-bold text-sm">
+        <div className="bg-blue-950/40 border border-blue-800/80 rounded-2xl p-5 space-y-3">
+          <div className="flex items-center space-x-2 text-blue-300 font-bold text-sm">
             <span>✅ Berhasil Menyimpan ke Database!</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <div className="p-3 bg-slate-900 rounded-xl border border-amber-900/60 shadow-xs">
+            <div className="p-3 bg-slate-900 rounded-xl border border-blue-900/60 shadow-xs">
               <span className="text-slate-500 text-[10px] uppercase tracking-wider block font-semibold">File Sumber</span>
               <span className="text-xs font-bold text-slate-200 truncate block mt-0.5">{importSummary.fileName}</span>
             </div>
-            <div className="p-3 bg-slate-900 rounded-xl border border-amber-900/60 shadow-xs">
+            <div className="p-3 bg-slate-900 rounded-xl border border-blue-900/60 shadow-xs">
               <span className="text-slate-500 text-[10px] uppercase tracking-wider block font-semibold">Data Baru Ditambahkan</span>
-              <span className="text-lg font-black text-amber-400 font-mono block mt-0.5">+{importSummary.importedCount}</span>
+              <span className="text-lg font-black text-blue-400 font-mono block mt-0.5">+{importSummary.importedCount}</span>
             </div>
-            <div className="p-3 bg-slate-900 rounded-xl border border-amber-900/60 shadow-xs">
+            <div className="p-3 bg-slate-900 rounded-xl border border-blue-900/60 shadow-xs">
               <span className="text-slate-500 text-[10px] uppercase tracking-wider block font-semibold">Total Pangkalan Data</span>
               <span className="text-lg font-black text-slate-100 font-mono block mt-0.5">{importSummary.totalCount.toLocaleString("id-ID")} Titik</span>
             </div>
@@ -157,7 +157,7 @@ export function BatchExcelUploader({ onIngestionComplete }: BatchExcelUploaderPr
             <span
               className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                 specValidation.isValid
-                  ? "bg-amber-950 text-amber-400 border border-amber-800"
+                  ? "bg-blue-950 text-blue-400 border border-blue-800"
                   : "bg-rose-950 text-rose-400 border border-rose-800"
               }`}
             >
@@ -173,7 +173,7 @@ export function BatchExcelUploader({ onIngestionComplete }: BatchExcelUploaderPr
               {specValidation.recognizedFields.map((f: string) => (
                 <span
                   key={f}
-                  className="px-2 py-0.5 bg-slate-900 text-amber-400 border border-slate-800 rounded text-[10px] font-mono"
+                  className="px-2 py-0.5 bg-slate-900 text-blue-400 border border-slate-800 rounded text-[10px] font-mono"
                 >
                   ✓ {f}
                 </span>

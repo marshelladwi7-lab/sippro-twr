@@ -19,7 +19,7 @@ export default function ErrorBoundary({
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-slate-100 select-none">
       <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl text-center space-y-6">
-        <div className="w-14 h-14 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-center mx-auto text-amber-400">
+        <div className="w-14 h-14 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex items-center justify-center mx-auto text-rose-400">
           <AlertTriangle className="w-7 h-7" />
         </div>
 
@@ -39,7 +39,7 @@ export default function ErrorBoundary({
         <div className="flex items-center justify-center gap-3">
           <button
             onClick={() => reset()}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Muat Ulang Komponen</span>

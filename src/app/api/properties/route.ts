@@ -35,6 +35,10 @@ const PropertySchema = z.object({
   keterangan: z.string().nullable().optional(),
 });
 
+const UpdatePropertySchema = PropertySchema.partial().extend({
+  id: z.string().min(1, "ID properti wajib disertakan"),
+});
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -111,8 +115,9 @@ export async function POST(request: NextRequest) {
     const saved = upsertProperty(parsed.data as any);
     return NextResponse.json({ success: true, data: saved });
   } catch (err: any) {
+    console.error("POST /api/properties error:", err);
     return NextResponse.json(
-      { success: false, error: "Gagal menyimpan entitas properti." },
+      { success: false, error: err?.message || "Gagal menyimpan entitas properti." },
       { status: 500 }
     );
   }
@@ -121,14 +126,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    if (!body.id) {
-      return NextResponse.json(
-        { success: false, error: "ID properti wajib disertakan untuk pembaruan." },
-        { status: 400 }
-      );
-    }
-
-    const parsed = PropertySchema.safeParse(body);
+    const parsed = UpdatePropertySchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
         {
@@ -142,8 +140,9 @@ export async function PUT(request: NextRequest) {
     const updated = upsertProperty(parsed.data as any);
     return NextResponse.json({ success: true, data: updated });
   } catch (err: any) {
+    console.error("PUT /api/properties error:", err);
     return NextResponse.json(
-      { success: false, error: "Gagal memperbarui entitas properti." },
+      { success: false, error: err?.message || "Gagal memperbarui entitas properti." },
       { status: 500 }
     );
   }
@@ -161,9 +160,10 @@ export async function DELETE(request: NextRequest) {
     }
     const deleted = deleteProperty(id.trim());
     return NextResponse.json({ success: deleted });
-  } catch {
+  } catch (err: any) {
+    console.error("DELETE /api/properties error:", err);
     return NextResponse.json(
-      { success: false, error: "Gagal menghapus entitas properti." },
+      { success: false, error: err?.message || "Gagal menghapus entitas properti." },
       { status: 500 }
     );
   }

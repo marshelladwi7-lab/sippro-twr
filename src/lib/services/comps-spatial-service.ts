@@ -1,66 +1,88 @@
 import * as fs from "fs";
 import * as path from "path";
+import * as os from "os";
 import * as XLSX from "xlsx";
 import { MarketComparableEntity, PropertyTypeEnum, LegalitasEnum, TapakShapeEnum } from "@/types/database";
 import { ingestDbTahap1Buffer } from "@/lib/excel/excel-ingestion";
-import { calculateHaversineDistance } from "@/lib/db/supabase";
+import { calculateHaversineDistance, getSupabaseClient, hasSupabaseCredentials } from "@/lib/db/supabase";
 
 const DATA_DIR = path.resolve(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "properties.json");
+const TMP_DATA_FILE = path.join(os.tmpdir(), "twr_properties.json");
 
 let cachedComparables: MarketComparableEntity[] | null = null;
 
 function ensureDataFile(): void {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
-
-  if (!fs.existsSync(DATA_FILE)) {
-    const initialList: MarketComparableEntity[] = [];
-    const excelPath = path.resolve(process.cwd(), "DB Tahap 1.xlsx");
-    if (fs.existsSync(excelPath)) {
-      const buffer = fs.readFileSync(excelPath);
-      const ingested = ingestDbTahap1Buffer(buffer);
-
-      ingested.records.forEach((r, idx) => {
-        initialList.push({
-          id: `prop-${r.legacyNo || idx + 1}`,
-          legacy_no: r.legacyNo,
-          jenis_properti: r.jenisProperti,
-          alamat: r.alamat,
-          provinsi: r.provinsi,
-          kota_kab: r.kotaKab,
-          kecamatan: r.kecamatan,
-          desa_kelurahan: r.desaKelurahan,
-          latitude: r.coordinate?.latitude || 0,
-          longitude: r.coordinate?.longitude || 0,
-          luas_tanah: r.luasTanah,
-          luas_bangunan: r.luasBangunan,
-          kisaran_nilai_tanah: r.kisaranNilaiTanah,
-          harga_penawaran: r.kisaranNilaiTanah ? r.kisaranNilaiTanah * r.luasTanah : null,
-          harga_transaksi: null,
-          tanggal_data: r.tanggalData,
-          surveyor_name: r.surveyor || null,
-          reviewer_name: r.reviewer || null,
-          admin_code: r.admin || null,
-          legalitas: "SHM",
-          tapak: "PERSEGI",
-          row_jalan: 6.0,
-          keterangan: r.isOutlierArea ? "Catatan: Luas tanah > 500.000 m²" : null,
-          raw_metadata: {
-            isOutlierArea: r.isOutlierArea,
-            vehiclePlate: r.vehiclePlate,
-          },
-        });
-      });
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
     }
-    fs.writeFileSync(DATA_FILE, JSON.stringify(initialList, null, 2), "utf-8");
+
+    if (!fs.existsSync(DATA_FILE)) {
+      const initialList: MarketComparableEntity[] = [];
+      const excelPath = path.resolve(process.cwd(), "DB Tahap 1.xlsx");
+      if (fs.existsSync(excelPath)) {
+        const buffer = fs.readFileSync(excelPath);
+        const ingested = ingestDbTahap1Buffer(buffer);
+
+        ingested.records.forEach((r, idx) => {
+          initialList.push({
+            id: `prop-${r.legacyNo || idx + 1}`,
+            legacy_no: r.legacyNo,
+            jenis_properti: r.jenisProperti,
+            alamat: r.alamat,
+            provinsi: r.provinsi,
+            kota_kab: r.kotaKab,
+            kecamatan: r.kecamatan,
+            desa_kelurahan: r.desaKelurahan,
+            latitude: r.coordinate?.latitude || 0,
+            longitude: r.coordinate?.longitude || 0,
+            luas_tanah: r.luasTanah,
+            luas_bangunan: r.luasBangunan,
+            kisaran_nilai_tanah: r.kisaranNilaiTanah,
+            harga_penawaran: r.kisaranNilaiTanah ? r.kisaranNilaiTanah * r.luasTanah : null,
+            harga_transaksi: null,
+            tanggal_data: r.tanggalData,
+            surveyor_name: r.surveyor || null,
+            reviewer_name: r.reviewer || null,
+            admin_code: r.admin || null,
+            legalitas: "SHM",
+            tapak: "PERSEGI",
+            row_jalan: 6.0,
+            keterangan: r.isOutlierArea ? "Catatan: Luas tanah > 500.000 m²" : null,
+            raw_metadata: {
+              isOutlierArea: r.isOutlierArea,
+              vehiclePlate: r.vehiclePlate,
+            },
+          });
+        });
+      }
+      fs.writeFileSync(DATA_FILE, JSON.stringify(initialList, null, 2), "utf-8");
+    }
+  } catch (err) {
+    // Read-only filesystem in serverless environments (Vercel)
+    console.warn("ensureDataFile: Read-only filesystem, skipping data dir init:", err);
   }
 }
 
 export function loadLegacyComparables(): MarketComparableEntity[] {
-  if (cachedComparables) return cachedComparables;
+  if (cachedComparables && cachedComparables.length > 0) return cachedComparables;
 
+  // 1. Check runtime writable tmp file first (captures live additions on serverless)
+  try {
+    if (fs.existsSync(TMP_DATA_FILE)) {
+      const raw = fs.readFileSync(TMP_DATA_FILE, "utf-8");
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        cachedComparables = parsed;
+        return cachedComparables;
+      }
+    }
+  } catch {
+    // Continue to primary bundled file
+  }
+
+  // 2. Read bundled data/properties.json
   try {
     ensureDataFile();
     if (fs.existsSync(DATA_FILE)) {
@@ -76,9 +98,56 @@ export function loadLegacyComparables(): MarketComparableEntity[] {
 }
 
 export function savePropertiesToDisk(list: MarketComparableEntity[]): void {
-  ensureDataFile();
-  fs.writeFileSync(DATA_FILE, JSON.stringify(list, null, 2), "utf-8");
+  // Always update in-memory cache synchronously so immediate requests succeed
   cachedComparables = list;
+
+  // 1. Write to tmpdir (always succeeds on Vercel Serverless and local)
+  try {
+    fs.writeFileSync(TMP_DATA_FILE, JSON.stringify(list, null, 2), "utf-8");
+  } catch (tmpErr) {
+    console.warn("Warning: could not write to tmpdir:", tmpErr);
+  }
+
+  // 2. Attempt local data/ write if filesystem is writable
+  try {
+    ensureDataFile();
+    if (fs.existsSync(DATA_DIR)) {
+      fs.writeFileSync(DATA_FILE, JSON.stringify(list, null, 2), "utf-8");
+    }
+  } catch {
+    // Serverless read-only filesystem (EROFS) - gracefully handled by tmpdir & memory cache
+  }
+
+  // 3. If Supabase is connected, optionally sync asynchronously
+  if (hasSupabaseCredentials()) {
+    try {
+      const client = getSupabaseClient();
+      if (client) {
+        // Asynchronous fire-and-forget sync for newly added records
+        client.from("properties").upsert(
+          list.slice(0, 10).map((p) => ({
+            id: p.id,
+            legacy_no: p.legacy_no,
+            jenis_properti: p.jenis_properti,
+            alamat: p.alamat,
+            provinsi: p.provinsi,
+            kota_kab: p.kota_kab,
+            latitude: p.latitude,
+            longitude: p.longitude,
+            luas_tanah: p.luas_tanah,
+            luas_bangunan: p.luas_bangunan,
+            kisaran_nilai_tanah: p.kisaran_nilai_tanah,
+            legalitas: p.legalitas,
+            tapak: p.tapak,
+            row_jalan: p.row_jalan,
+            tanggal_data: p.tanggal_data,
+          }))
+        ).then(() => {});
+      }
+    } catch {
+      // Ignore Supabase sync failure
+    }
+  }
 }
 
 export function upsertProperty(
