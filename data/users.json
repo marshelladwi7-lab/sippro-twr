@@ -1,5 +1,149 @@
 [
   {
+    "id": "usr-990170",
+    "name": "Analis Agunan Senior",
+    "email": "analis_1790502990170@twr-valuation.id",
+    "role": "reviewer",
+    "roleTitle": "Credit Risk & Collateral Reviewer",
+    "institution": "PT Bank Danamon Tbk",
+    "phone": "+62 811-2233-4455",
+    "licenseNo": "MAPPI Cert #9921",
+    "assignedBranch": "Credit Risk Dept",
+    "status": "ACTIVE",
+    "password": "PasswordAgunan2026!",
+    "permissions": [
+      "REVIEW_VALUATION",
+      "VALIDATE_HAIRCUT",
+      "EXPORT_DATA",
+      "PRINT_REPORT"
+    ],
+    "rights": {
+      "canCreatePoi": false,
+      "canEditValuation": false,
+      "canDeletePoi": false,
+      "canExportData": true,
+      "canAccessAnalytics": true,
+      "canManageUsers": false
+    },
+    "prohibitions": {
+      "prohibitSelfAppraisal": true,
+      "prohibitUnwatermarkedExport": true,
+      "prohibitUnauditedPriceOverride": true,
+      "prohibitMassDelete": true
+    },
+    "createdAt": "2026-09-27T09:56:30.170Z",
+    "lastActive": "Baru dibuat",
+    "lastLoginIp": "-"
+  },
+  {
+    "id": "usr-881669",
+    "name": "Analis Agunan Senior",
+    "email": "analis_1790502881668@twr-valuation.id",
+    "role": "reviewer",
+    "roleTitle": "Credit Risk & Collateral Reviewer",
+    "institution": "PT Bank Danamon Tbk",
+    "phone": "+62 811-2233-4455",
+    "licenseNo": "MAPPI Cert #9921",
+    "assignedBranch": "Credit Risk Dept",
+    "status": "ACTIVE",
+    "password": "PasswordAgunan2026!",
+    "permissions": [
+      "REVIEW_VALUATION",
+      "VALIDATE_HAIRCUT",
+      "EXPORT_DATA",
+      "PRINT_REPORT"
+    ],
+    "rights": {
+      "canCreatePoi": false,
+      "canEditValuation": false,
+      "canDeletePoi": false,
+      "canExportData": true,
+      "canAccessAnalytics": true,
+      "canManageUsers": false
+    },
+    "prohibitions": {
+      "prohibitSelfAppraisal": true,
+      "prohibitUnwatermarkedExport": true,
+      "prohibitUnauditedPriceOverride": true,
+      "prohibitMassDelete": true
+    },
+    "createdAt": "2026-09-27T09:54:41.669Z",
+    "lastActive": "Baru dibuat",
+    "lastLoginIp": "-"
+  },
+  {
+    "id": "usr-531825",
+    "name": "Analis Agunan Senior",
+    "email": "analis_1790496531825@twr-valuation.id",
+    "role": "reviewer",
+    "roleTitle": "Credit Risk & Collateral Reviewer",
+    "institution": "PT Bank Danamon Tbk",
+    "phone": "+62 811-2233-4455",
+    "licenseNo": "MAPPI Cert #9921",
+    "assignedBranch": "Credit Risk Dept",
+    "status": "ACTIVE",
+    "password": "PasswordAgunan2026!",
+    "permissions": [
+      "REVIEW_VALUATION",
+      "VALIDATE_HAIRCUT",
+      "EXPORT_DATA",
+      "PRINT_REPORT"
+    ],
+    "rights": {
+      "canCreatePoi": false,
+      "canEditValuation": false,
+      "canDeletePoi": false,
+      "canExportData": true,
+      "canAccessAnalytics": true,
+      "canManageUsers": false
+    },
+    "prohibitions": {
+      "prohibitSelfAppraisal": true,
+      "prohibitUnwatermarkedExport": true,
+      "prohibitUnauditedPriceOverride": true,
+      "prohibitMassDelete": true
+    },
+    "createdAt": "2026-09-27T08:08:51.826Z",
+    "lastActive": "Baru dibuat",
+    "lastLoginIp": "-"
+  },
+  {
+    "id": "usr-411092",
+    "name": "Analis Agunan Senior",
+    "email": "analis_1790496411092@twr-valuation.id",
+    "role": "reviewer",
+    "roleTitle": "Credit Risk & Collateral Reviewer",
+    "institution": "PT Bank Danamon Tbk",
+    "phone": "+62 811-2233-4455",
+    "licenseNo": "MAPPI Cert #9921",
+    "assignedBranch": "Credit Risk Dept",
+    "status": "ACTIVE",
+    "password": "PasswordAgunan2026!",
+    "permissions": [
+      "REVIEW_VALUATION",
+      "VALIDATE_HAIRCUT",
+      "EXPORT_DATA",
+      "PRINT_REPORT"
+    ],
+    "rights": {
+      "canCreatePoi": false,
+      "canEditValuation": false,
+      "canDeletePoi": false,
+      "canExportData": true,
+      "canAccessAnalytics": true,
+      "canManageUsers": false
+    },
+    "prohibitions": {
+      "prohibitSelfAppraisal": true,
+      "prohibitUnwatermarkedExport": true,
+      "prohibitUnauditedPriceOverride": true,
+      "prohibitMassDelete": true
+    },
+    "createdAt": "2026-09-27T08:06:51.092Z",
+    "lastActive": "Baru dibuat",
+    "lastLoginIp": "-"
+  },
+  {
     "id": "usr-432536",
     "name": "Analis Agunan Senior",
     "email": "analis_1789698432536@twr-valuation.id",

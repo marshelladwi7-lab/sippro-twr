@@ -195,6 +195,9 @@ export function upsertProperty(
     legalitas: data.legalitas || "SHM",
     tapak: data.tapak || "PERSEGI",
     row_jalan: data.row_jalan || 6.0,
+    sumber_data: data.sumber_data || null,
+    nama_pemberi_data: data.nama_pemberi_data || null,
+    nomor_pemberi_data: data.nomor_pemberi_data || null,
     keterangan: data.keterangan || null,
     created_at: now,
   };
@@ -233,12 +236,15 @@ export function exportToExcelBuffer(): Buffer {
     HARGA_PENAWARAN: p.harga_penawaran,
     HARGA_TRANSAKSI: p.harga_transaksi,
     TANGGAL_DATA: p.tanggal_data,
-    SURVEYOR: p.surveyor_name,
-    REVIEWER: p.reviewer_name,
-    ADMIN: p.admin_code,
     LEGALITAS: p.legalitas,
     BENTUK_TAPAK: p.tapak,
     ROW_JALAN: p.row_jalan,
+    SUMBER_DATA: p.sumber_data || "-",
+    NAMA_PEMBERI_DATA: p.nama_pemberi_data || "-",
+    NOMOR_PEMBERI_DATA: p.nomor_pemberi_data || "-",
+    SURVEYOR: p.surveyor_name,
+    REVIEWER: p.reviewer_name,
+    ADMIN: p.admin_code,
     KETERANGAN: p.keterangan,
   }));
 
@@ -273,7 +279,9 @@ export async function getComparablesForValuation(
         c.kota_kab.toLowerCase().includes(q) ||
         c.kecamatan.toLowerCase().includes(q) ||
         c.desa_kelurahan.toLowerCase().includes(q) ||
-        (c.surveyor_name && c.surveyor_name.toLowerCase().includes(q))
+        (c.surveyor_name && c.surveyor_name.toLowerCase().includes(q)) ||
+        (c.sumber_data && c.sumber_data.toLowerCase().includes(q)) ||
+        (c.nama_pemberi_data && c.nama_pemberi_data.toLowerCase().includes(q))
     );
   }
 

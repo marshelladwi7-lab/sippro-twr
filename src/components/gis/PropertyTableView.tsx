@@ -137,7 +137,17 @@ export function PropertyTableView({
                       : "-"}
                   </td>
                   <td className="p-3.5 font-mono text-[11px] text-slate-500 dark:text-slate-400">{p.legalitas || "-"}</td>
-                  <td className="p-3.5 text-[11px] text-slate-500 dark:text-slate-400">{p.surveyor_name || "-"}</td>
+                  <td className="p-3.5 text-[11px] text-slate-500 dark:text-slate-400">
+                    <div className="font-medium text-slate-800 dark:text-slate-300">{p.surveyor_name || "-"}</div>
+                    {p.sumber_data && (
+                      <div
+                        className="text-[10px] text-blue-600 dark:text-blue-400 font-sans truncate max-w-[140px]"
+                        title={`Sumber: ${p.sumber_data}${p.nama_pemberi_data ? ` (${p.nama_pemberi_data})` : ""}`}
+                      >
+                        {p.sumber_data}
+                      </div>
+                    )}
+                  </td>
                   <td className="p-3.5 text-center" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-center space-x-1.5">
                       <button

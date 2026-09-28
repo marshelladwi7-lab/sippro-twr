@@ -32,6 +32,9 @@ const PropertySchema = z.object({
   legalitas: z.enum(["SHM", "HGB", "HAK_PAKAI", "GIRIK_LETTER_C", "STRATA_TITLE"]).default("SHM"),
   tapak: z.enum(["PERSEGI", "L_SHAPE", "TUSUK_SATE", "KANTONG_SEMAR", "HOOK", "TIDAK_BERATURAN"]).default("PERSEGI"),
   row_jalan: z.number().min(0).default(6.0),
+  sumber_data: z.string().nullable().optional(),
+  nama_pemberi_data: z.string().nullable().optional(),
+  nomor_pemberi_data: z.string().nullable().optional(),
   keterangan: z.string().nullable().optional(),
 });
 

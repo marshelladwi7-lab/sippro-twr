@@ -6,8 +6,8 @@ import {
 } from "../src/lib/excel/bank-data-spec";
 
 describe("Bank Data Specification & Validator (LIST BANK DATA.xlsx)", () => {
-  it("should have all 12 defined fields in the spec", () => {
-    expect(BANK_DATA_SPECIFICATIONS.length).toBe(12);
+  it("should have all 15 defined fields in the spec", () => {
+    expect(BANK_DATA_SPECIFICATIONS.length).toBe(15);
   });
 
   it("should validate a complete header set conforming to LIST BANK DATA.xlsx", () => {
@@ -30,6 +30,54 @@ describe("Bank Data Specification & Validator (LIST BANK DATA.xlsx)", () => {
     expect(report.isValid).toBe(true);
     expect(report.missingRequired).toHaveLength(0);
     expect(report.hasTransactionDiscountFields).toBe(true);
+  });
+
+  it("should recognize new informant headers (SUMBER DATA, NAMA PEMBERI DATA, NOMOR PEMBERI DATA)", () => {
+    const headers = [
+      "JENIS PROPERTI",
+      "ALAMAT",
+      "TITIK KOORDINAT",
+      "LUAS TANAH",
+      "LUAS BANGUNAN",
+      "TANGGAL DATA",
+      "SUMBER DATA",
+      "NAMA PEMBERI DATA",
+      "NOMOR PEMBERI DATA",
+    ];
+    const report = validateBankDataSchema(headers);
+    expect(report.isValid).toBe(true);
+    expect(report.recognizedFields).toContain("SUMBER DATA");
+    expect(report.recognizedFields).toContain("NAMA PEMBERI DATA");
+    expect(report.recognizedFields).toContain("NOMOR PEMBERI DATA");
+  });
+
+  it("should validate DB Tahap 2 snake_case and latlng headers", () => {
+    const dbTahap2Headers = [
+      "no",
+      "jenis_properti",
+      "alamat",
+      "provinsi",
+      "kota_kab",
+      "kecamatan",
+      "desa_kelurahan",
+      "latlng",
+      "luas_tanah",
+      "luas_bangunan",
+      "kisaran_nilai_tanah",
+      "tanggal_data",
+      "surveyor",
+      "reviewer",
+      "admin",
+      "sumber_data",
+      "nama_pemberi_data",
+      "nomor_pemberi_data",
+    ];
+    const report = validateBankDataSchema(dbTahap2Headers);
+    expect(report.isValid).toBe(true);
+    expect(report.missingRequired).toHaveLength(0);
+    expect(report.recognizedFields).toContain("TITIK KOORDINAT");
+    expect(report.recognizedFields).toContain("JENIS PROPERTI");
+    expect(report.recognizedFields).toContain("LUAS TANAH");
   });
 
   it("should detect missing required core fields", () => {

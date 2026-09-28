@@ -48,6 +48,9 @@ export interface MarketComparableEntity {
   legalitas: LegalitasEnum;
   tapak: TapakShapeEnum;
   row_jalan: number;
+  sumber_data?: string | null;
+  nama_pemberi_data?: string | null;
+  nomor_pemberi_data?: string | null;
   keterangan?: string | null;
   raw_metadata?: Record<string, any>;
   distance_meters?: number;

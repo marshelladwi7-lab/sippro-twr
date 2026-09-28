@@ -36,6 +36,9 @@ export function PropertyModal({ isOpen, property, onClose, onSave }: PropertyMod
         surveyor_name: "",
         reviewer_name: "",
         admin_code: "",
+        sumber_data: "",
+        nama_pemberi_data: "",
+        nomor_pemberi_data: "",
         legalitas: "SHM",
         tapak: "PERSEGI",
         row_jalan: 6.0,
@@ -315,12 +318,47 @@ export function PropertyModal({ isOpen, property, onClose, onSave }: PropertyMod
             </div>
           </div>
 
-          {/* Metadata & Surveyor */}
+          {/* Metadata, Sumber Data & Surveyor */}
           <div className="space-y-3.5">
             <h4 className="font-bold text-slate-200 uppercase tracking-wider text-[11px]">
               4. Sumber Data & Surveyor Lapangan
             </h4>
-            <div className="grid grid-cols-3 gap-2.5">
+
+            {/* Informan / Sumber Data */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <div>
+                <label className="text-slate-400 font-medium text-[11px]">Sumber Data</label>
+                <input
+                  type="text"
+                  value={formData.sumber_data || ""}
+                  onChange={(e) => setFormData({ ...formData, sumber_data: e.target.value })}
+                  placeholder="Contoh: Broker / Pemilik / Iklan"
+                  className="w-full mt-1 px-3 py-1.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-slate-400 font-medium text-[11px]">Nama Pemberi Data</label>
+                <input
+                  type="text"
+                  value={formData.nama_pemberi_data || ""}
+                  onChange={(e) => setFormData({ ...formData, nama_pemberi_data: e.target.value })}
+                  placeholder="Nama informan / pemilik"
+                  className="w-full mt-1 px-3 py-1.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-slate-400 font-medium text-[11px]">No. Telepon / HP Pemberi Data</label>
+                <input
+                  type="text"
+                  value={formData.nomor_pemberi_data || ""}
+                  onChange={(e) => setFormData({ ...formData, nomor_pemberi_data: e.target.value })}
+                  placeholder="08xxxxxxxxxx"
+                  className="w-full mt-1 px-3 py-1.5 bg-slate-950 border border-slate-700/80 rounded-xl font-mono text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
               <div>
                 <label className="text-slate-400 font-medium text-[11px]">Nama Surveyor</label>
                 <input
@@ -358,7 +396,7 @@ export function PropertyModal({ isOpen, property, onClose, onSave }: PropertyMod
                 type="text"
                 value={formData.keterangan || ""}
                 onChange={(e) => setFormData({ ...formData, keterangan: e.target.value })}
-                placeholder="Catatan tambahan, narasumber pasar, kontak broker, dsb."
+                placeholder="Catatan tambahan kondisi fisik, aksesibilitas, legalitas, dsb."
                 className="w-full mt-1 px-3 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
               />
             </div>

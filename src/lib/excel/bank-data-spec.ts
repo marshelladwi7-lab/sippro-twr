@@ -83,6 +83,24 @@ export const BANK_DATA_SPECIFICATIONS: BankDataFieldSpec[] = [
     isRequired: false,
     description: "Harga transaksi riil properti pembanding (IDR)",
   },
+  {
+    field: "SUMBER DATA",
+    sourceCategory: "TAMBAHAN",
+    isRequired: false,
+    description: "Sumber data properti (Broker, Pemilik, Iklan Online, Bank, dsb.)",
+  },
+  {
+    field: "NAMA PEMBERI DATA",
+    sourceCategory: "TAMBAHAN",
+    isRequired: false,
+    description: "Nama narasumber / informan data pembanding",
+  },
+  {
+    field: "NOMOR PEMBERI DATA",
+    sourceCategory: "TAMBAHAN",
+    isRequired: false,
+    description: "Nomor telepon / kontak narasumber pemberi data",
+  },
 ];
 
 export interface ValidationReport {
@@ -93,39 +111,71 @@ export interface ValidationReport {
   hasTransactionDiscountFields: boolean;
 }
 
+export const FIELD_ALIASES: Record<string, string[]> = {
+  "JENIS PROPERTI": ["JENIS PROPERTI", "JENIS_PROPERTI", "JENIS", "TIPE PROPERTI", "TIPE_PROPERTI"],
+  "ALAMAT": ["ALAMAT", "ALAMAT LENGKAP", "ALAMAT_LENGKAP", "LOKASI"],
+  "TITIK KOORDINAT": ["TITIK KOORDINAT", "TITIK_KOORDINAT", "LATLNG", "LAT_LNG", "KOORDINAT", "COORDINATE"],
+  "LUAS TANAH": ["LUAS TANAH", "LUAS_TANAH", "LT", "LUAS TANAH M2", "LUAS_TANAH_M2", "LUAS TANAH (M2)"],
+  "LUAS BANGUNAN": ["LUAS BANGUNAN", "LUAS_BANGUNAN", "LB", "LUAS BANGUNAN M2", "LUAS_BANGUNAN_M2", "LUAS BANGUNAN (M2)"],
+  "KISARAN NILAI TANAH/M2": [
+    "KISARAN NILAI TANAH/M2",
+    "KISARAN NILAI TANAH",
+    "KISARAN_NILAI_TANAH",
+    "NILAI TANAH/M2",
+    "NILAI_TANAH",
+    "NILAI TANAH",
+  ],
+  "TANGGAL DATA": ["TANGGAL DATA", "TANGGAL_DATA", "TANGGAL", "TGL"],
+  "SURVEYOR": ["SURVEYOR", "SURVEYOR_NAME", "NAMA SURVEYOR"],
+  "REVIEWER": ["REVIEWER", "REVIEWER_NAME", "NAMA REVIEWER"],
+  "ADMIN": ["ADMIN", "ADMIN_CODE", "KODE ADMIN"],
+  "HARGA PENAWARAN": ["HARGA PENAWARAN", "HARGA_PENAWARAN", "PENAWARAN"],
+  "HARGA TRANSAKSI": ["HARGA TRANSAKSI", "HARGA_TRANSAKSI", "TRANSAKSI"],
+  "SUMBER DATA": ["SUMBER DATA", "SUMBER_DATA", "SUMBER"],
+  "NAMA PEMBERI DATA": ["NAMA PEMBERI DATA", "NAMA_PEMBERI_DATA", "PEMBERI DATA", "INFORMAN"],
+  "NOMOR PEMBERI DATA": ["NOMOR PEMBERI DATA", "NOMOR_PEMBERI_DATA", "NO PEMBERI DATA", "NO_PEMBERI_DATA", "NO HP PEMBERI DATA", "KONTAK"],
+};
+
 export function normalizeHeader(h: string): string {
-  return h.toUpperCase().trim().replace(/\s+/g, " ");
+  return h.toUpperCase().trim().replace(/[\s_]+/g, " ");
 }
 
 export function validateBankDataSchema(headers: string[]): ValidationReport {
-  const normalizedHeaders = new Set(headers.map(normalizeHeader));
+  const cleanHeaders = headers.map((h) => h.toUpperCase().trim().replace(/[^A-Z0-9]/g, ""));
+  const normalizedHeaders = new Set(cleanHeaders);
   const recognizedFields: string[] = [];
   const missingRequired: string[] = [];
   const unrecognizedFields: string[] = [];
 
-  const specFieldMap = new Map<string, BankDataFieldSpec>();
-  for (const spec of BANK_DATA_SPECIFICATIONS) {
-    specFieldMap.set(normalizeHeader(spec.field), spec);
-  }
+  const matchedHeaderSet = new Set<string>();
 
   for (const spec of BANK_DATA_SPECIFICATIONS) {
-    const norm = normalizeHeader(spec.field);
-    if (normalizedHeaders.has(norm)) {
+    const aliases = FIELD_ALIASES[spec.field] || [spec.field];
+    const isMatched = aliases.some((alias) =>
+      normalizedHeaders.has(alias.toUpperCase().trim().replace(/[^A-Z0-9]/g, ""))
+    );
+
+    if (isMatched) {
       recognizedFields.push(spec.field);
+      aliases.forEach((alias) =>
+        matchedHeaderSet.add(alias.toUpperCase().trim().replace(/[^A-Z0-9]/g, ""))
+      );
     } else if (spec.isRequired) {
       missingRequired.push(spec.field);
     }
   }
 
   for (const header of headers) {
-    const norm = normalizeHeader(header);
-    if (!specFieldMap.has(norm)) {
+    const cleanHeader = header.toUpperCase().trim().replace(/[^A-Z0-9]/g, "");
+    if (!matchedHeaderSet.has(cleanHeader) && cleanHeader) {
       unrecognizedFields.push(header);
     }
   }
 
-  const hasPenawaran = normalizedHeaders.has("HARGA PENAWARAN");
-  const hasTransaksi = normalizedHeaders.has("HARGA TRANSAKSI");
+  const hasPenawaran =
+    normalizedHeaders.has("HARGAPENAWARAN") || normalizedHeaders.has("PENAWARAN");
+  const hasTransaksi =
+    normalizedHeaders.has("HARGATRANSAKSI") || normalizedHeaders.has("TRANSAKSI");
 
   return {
     isValid: missingRequired.length === 0,

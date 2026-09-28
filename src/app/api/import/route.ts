@@ -68,30 +68,38 @@ export async function POST(request: NextRequest) {
           legacy_no: r.legacyNo,
           jenis_properti: r.jenisProperti,
           alamat: r.alamat,
-          provinsi: r.provinsi,
-          kota_kab: r.kotaKab,
-          kecamatan: r.kecamatan,
-          desa_kelurahan: r.desaKelurahan,
+          provinsi: r.provinsi || "Jawa Barat",
+          kota_kab: r.kotaKab || "",
+          kecamatan: r.kecamatan || "",
+          desa_kelurahan: r.desaKelurahan || "",
           latitude: r.coordinate?.latitude || 0,
           longitude: r.coordinate?.longitude || 0,
           luas_tanah: r.luasTanah,
           luas_bangunan: r.luasBangunan,
           kisaran_nilai_tanah: r.kisaranNilaiTanah,
-          harga_penawaran: r.kisaranNilaiTanah ? r.kisaranNilaiTanah * r.luasTanah : null,
-          harga_transaksi: null,
+          harga_penawaran: r.hargaPenawaran ?? (r.kisaranNilaiTanah ? r.kisaranNilaiTanah * r.luasTanah : null),
+          harga_transaksi: r.hargaTransaksi ?? null,
           tanggal_data: r.tanggalData,
           surveyor_name: r.surveyor || null,
           reviewer_name: r.reviewer || null,
           admin_code: r.admin || null,
-          legalitas: "SHM",
-          tapak: "PERSEGI",
-          row_jalan: 6.0,
-          keterangan: r.isOutlierArea ? "Catatan: Luas tanah > 500.000 m²" : null,
+          sumber_data: r.sumberData || null,
+          nama_pemberi_data: r.namaPemberiData || null,
+          nomor_pemberi_data: r.nomorPemberiData || null,
+          legalitas: (r.legalitas as any) || "SHM",
+          tapak: (r.tapak as any) || "PERSEGI",
+          row_jalan: r.rowJalan || 6.0,
+          keterangan: r.keterangan || (r.isOutlierArea ? "Catatan: Luas tanah > 500.000 m²" : null),
           raw_metadata: {
             isOutlierArea: r.isOutlierArea,
             vehiclePlate: r.vehiclePlate,
           },
         }));
+
+        // Filter out empty rows
+        newProperties = newProperties.filter(
+          (p) => (p.alamat && p.alamat.trim().length > 0) || (p.latitude !== 0 && p.longitude !== 0)
+        );
       }
     }
 
@@ -109,7 +117,9 @@ export async function POST(request: NextRequest) {
     // De-duplicate by coordinate or address
     const uniqueMap = new Map<string, MarketComparableEntity>();
     for (const p of merged) {
-      const key = `${p.latitude.toFixed(5)}_${p.longitude.toFixed(5)}_${p.alamat.toLowerCase().trim()}`;
+      const coordPart = (p.latitude && p.longitude) ? `${p.latitude.toFixed(5)}_${p.longitude.toFixed(5)}` : "nocoord";
+      const addrPart = (p.alamat || "").toLowerCase().trim();
+      const key = `${coordPart}_${addrPart}`;
       if (!uniqueMap.has(key)) {
         uniqueMap.set(key, p);
       }

@@ -7,9 +7,10 @@ import { validateBankDataSchema, ValidationReport } from "@/lib/excel/bank-data-
 
 interface BatchExcelUploaderProps {
   onIngestionComplete?: (result: { importedCount: number; totalCount: number }) => void;
+  onGoToMap?: () => void;
 }
 
-export function BatchExcelUploader({ onIngestionComplete }: BatchExcelUploaderProps) {
+export function BatchExcelUploader({ onIngestionComplete, onGoToMap }: BatchExcelUploaderProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [importSummary, setImportSummary] = useState<{
     importedCount: number;
@@ -30,19 +31,25 @@ export function BatchExcelUploader({ onIngestionComplete }: BatchExcelUploaderPr
         const buffer = await file.arrayBuffer();
         const uint8 = new Uint8Array(buffer);
         const wb = XLSX.read(uint8, { type: "array" });
-        if (!wb.SheetNames.includes("List_DP")) {
-          const firstSheet = wb.Sheets[wb.SheetNames[0]];
-          const rawJson: any[][] = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+        const targetSheet =
+          wb.Sheets["LIST_DATA_PROPERTI"] ||
+          wb.Sheets["List_DP"] ||
+          wb.Sheets[wb.SheetNames[0]];
+
+        if (targetSheet) {
+          const rawJson: any[][] = XLSX.utils.sheet_to_json(targetSheet, { header: 1 });
           const headers: string[] = [];
-          for (const row of rawJson) {
-            for (const cell of row) {
+          if (rawJson.length > 0 && Array.isArray(rawJson[0])) {
+            for (const cell of rawJson[0]) {
               if (typeof cell === "string" && cell.trim()) {
                 headers.push(cell.trim());
               }
             }
           }
-          const validation = validateBankDataSchema(headers);
-          setSpecValidation(validation);
+          if (headers.length > 0) {
+            const validation = validateBankDataSchema(headers);
+            setSpecValidation(validation);
+          }
         }
       }
 
@@ -88,7 +95,7 @@ export function BatchExcelUploader({ onIngestionComplete }: BatchExcelUploaderPr
 
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5 text-slate-100">
-      <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
         <div>
           <h3 className="text-base font-bold text-white tracking-tight flex items-center space-x-2">
             <span>Import Data & Pangkalan Data Properti</span>
@@ -100,6 +107,15 @@ export function BatchExcelUploader({ onIngestionComplete }: BatchExcelUploaderPr
             Unggah file Excel (.xlsx / .xls) atau Google My Maps (.kml) untuk menambahkan data ke pangkalan data.
           </p>
         </div>
+        <a
+          href="/api/template-excel"
+          download="Template_Import_Bank_Data_TWR.xlsx"
+          className="inline-flex items-center justify-center space-x-2 px-3.5 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 hover:text-blue-300 border border-blue-500/40 text-xs font-semibold transition-all shadow-xs shrink-0 self-start sm:self-auto"
+          title="Unduh format spreadsheet standar untuk pengisian data manual"
+        >
+          <span>📥</span>
+          <span>Unduh Format Excel</span>
+        </a>
       </div>
 
       <div
@@ -127,9 +143,22 @@ export function BatchExcelUploader({ onIngestionComplete }: BatchExcelUploaderPr
       </div>
 
       {importSummary && (
-        <div className="bg-blue-950/40 border border-blue-800/80 rounded-2xl p-5 space-y-3">
-          <div className="flex items-center space-x-2 text-blue-300 font-bold text-sm">
-            <span>✅ Berhasil Menyimpan ke Database!</span>
+        <div className="bg-blue-950/40 border border-blue-800/80 rounded-2xl p-5 space-y-4">
+          <div className="flex items-center justify-between text-blue-300 font-bold text-sm">
+            <span className="flex items-center gap-2">
+              <span>✅</span>
+              <span>Berhasil Menyimpan ke Database!</span>
+            </span>
+            {onGoToMap && (
+              <button
+                type="button"
+                onClick={onGoToMap}
+                className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-600/25 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+              >
+                <span>🗺️</span>
+                <span>Lihat di Peta</span>
+              </button>
+            )}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
             <div className="p-3 bg-slate-900 rounded-xl border border-blue-900/60 shadow-xs">

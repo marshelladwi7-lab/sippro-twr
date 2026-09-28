@@ -102,7 +102,9 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
 
   const refreshProperties = async () => {
     try {
-      const res = await fetch("/api/properties");
+      const res = await fetch(`/api/properties?_t=${Date.now()}`, {
+        cache: "no-store",
+      });
       const json = await res.json();
       if (json.success && json.data) {
         setProperties(json.data);
@@ -342,6 +344,9 @@ export function DashboardClient({ initialProperties }: DashboardClientProps) {
           <div className="flex-1 p-8 overflow-y-auto bg-slate-950 max-w-4xl mx-auto w-full">
             <BatchExcelUploader
               onIngestionComplete={() => {
+                refreshProperties();
+              }}
+              onGoToMap={() => {
                 refreshProperties();
                 setViewMode("map");
               }}

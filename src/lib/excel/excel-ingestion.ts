@@ -24,6 +24,15 @@ export interface ParsedComparableRecord {
   admin: string;
   isOutlierArea: boolean; // luas_tanah > 500,000 m2
   vehiclePlate?: string;
+  sumberData?: string;
+  namaPemberiData?: string;
+  nomorPemberiData?: string;
+  hargaPenawaran?: number | null;
+  hargaTransaksi?: number | null;
+  legalitas?: string;
+  tapak?: string;
+  rowJalan?: number;
+  keterangan?: string;
 }
 
 export interface Sheet1KecamatanMetadata {
@@ -71,6 +80,36 @@ export function parseExcelDate(serialOrStr: any): string {
   return String(serialOrStr);
 }
 
+function getRowField(row: Record<string, any>, possibleKeys: string[]): any {
+  if (!row || typeof row !== "object") return undefined;
+
+  // 1. Direct key match
+  for (const key of possibleKeys) {
+    if (row[key] !== undefined && row[key] !== null && row[key] !== "") {
+      return row[key];
+    }
+  }
+
+  // 2. Normalized alphanumeric key match
+  const rowEntries = Object.entries(row);
+  const normalizedMap = new Map<string, any>();
+  for (const [k, v] of rowEntries) {
+    if (v !== undefined && v !== null && v !== "") {
+      const cleanKey = k.toLowerCase().replace(/[^a-z0-9]/g, "");
+      normalizedMap.set(cleanKey, v);
+    }
+  }
+
+  for (const key of possibleKeys) {
+    const cleanTarget = key.toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (normalizedMap.has(cleanTarget)) {
+      return normalizedMap.get(cleanTarget);
+    }
+  }
+
+  return undefined;
+}
+
 export function ingestDbTahap1Buffer(buffer: Buffer | Uint8Array): IngestionResult {
   const workbook = XLSX.read(buffer, { type: "buffer" });
 
@@ -78,7 +117,6 @@ export function ingestDbTahap1Buffer(buffer: Buffer | Uint8Array): IngestionResu
   const surveyorVehicles: Record<string, string> = {};
   if (workbook.Sheets["Surveyor"]) {
     const surveyorSheet = workbook.Sheets["Surveyor"];
-    // Surveyor sheet has names at row 2 and plates at row 25
     const surveyorCols = ["B", "G", "L", "Q"];
     for (const col of surveyorCols) {
       const nameCell = surveyorSheet[`${col}2`];
@@ -91,9 +129,9 @@ export function ingestDbTahap1Buffer(buffer: Buffer | Uint8Array): IngestionResu
     }
   }
 
-  // 2. Ingest operational metadata from "Sheet1"
+  // 2. Ingest operational metadata from "Sheet1" ONLY if List_DP exists (legacy DB Tahap 1 format)
   const kecamatanMetadata: Sheet1KecamatanMetadata[] = [];
-  if (workbook.Sheets["Sheet1"]) {
+  if (workbook.Sheets["List_DP"] && workbook.Sheets["Sheet1"]) {
     const rawSheet1 = XLSX.utils.sheet_to_json<any>(workbook.Sheets["Sheet1"], {
       range: 1, // Header at row 2
       header: ["kecamatan", "kode", "kelurahanDesa", "luasKm2", "surveyor", "noRekeningSurveyor", "analis", "noRekeningAnalis"],
@@ -115,8 +153,31 @@ export function ingestDbTahap1Buffer(buffer: Buffer | Uint8Array): IngestionResu
     }
   }
 
-  // 3. Stream-parse "List_DP"
-  const listSheet = workbook.Sheets["List_DP"] || workbook.Sheets[workbook.SheetNames[0]];
+  // 3. Select primary property data sheet with intelligent prioritization
+  let listSheet: XLSX.WorkSheet | undefined;
+  const candidateSheetNames = [
+    "LIST_DATA_PROPERTI",
+    "List_DP",
+    "DATA_PROPERTI",
+    "Bank_Data_Properti",
+    "Sheet1",
+  ];
+
+  for (const name of candidateSheetNames) {
+    if (workbook.Sheets[name]) {
+      // If Sheet1, only skip if List_DP exists (DB Tahap 1 metadata)
+      if (name === "Sheet1" && workbook.Sheets["List_DP"]) {
+        continue;
+      }
+      listSheet = workbook.Sheets[name];
+      break;
+    }
+  }
+
+  if (!listSheet) {
+    listSheet = workbook.Sheets[workbook.SheetNames[0]];
+  }
+
   const rawRows = XLSX.utils.sheet_to_json<any>(listSheet);
 
   const records: ParsedComparableRecord[] = [];
@@ -126,7 +187,17 @@ export function ingestDbTahap1Buffer(buffer: Buffer | Uint8Array): IngestionResu
   let pendingValuationCount = 0;
 
   for (const row of rawRows) {
-    const rawCoordStr = row["latlng"] ?? row["LATLNG"] ?? row["Titik Koordinat"] ?? "";
+    const rawCoordStr = String(
+      getRowField(row, [
+        "titik koordinat",
+        "latlng",
+        "lat_lng",
+        "koordinat",
+        "coordinate",
+        "titik_koordinat",
+        "lokasi",
+      ]) || ""
+    );
     const sanitizedCoord = sanitizeCoordinate(rawCoordStr);
 
     if (sanitizedCoord?.isValidIndonesianBbox) {
@@ -136,18 +207,47 @@ export function ingestDbTahap1Buffer(buffer: Buffer | Uint8Array): IngestionResu
       }
     }
 
-    const luasTanah = typeof row["luas_tanah"] === "number"
-      ? row["luas_tanah"]
-      : parseFloat(row["luas_tanah"]) || 0;
+    const rawLT = getRowField(row, [
+      "luas tanah",
+      "luas_tanah",
+      "luas tanah m2",
+      "luas_tanah_m2",
+      "lt",
+      "lt m2",
+      "lt_m2",
+    ]);
+    const luasTanah =
+      typeof rawLT === "number" ? rawLT : parseFloat(String(rawLT || 0)) || 0;
 
-    const luasBangunan = typeof row["luas_bangunan"] === "number"
-      ? row["luas_bangunan"]
-      : parseFloat(row["luas_bangunan"]) || 0;
+    const rawLB = getRowField(row, [
+      "luas bangunan",
+      "luas_bangunan",
+      "luas bangunan m2",
+      "luas_bangunan_m2",
+      "lb",
+      "lb m2",
+      "lb_m2",
+    ]);
+    const luasBangunan =
+      typeof rawLB === "number" ? rawLB : parseFloat(String(rawLB || 0)) || 0;
 
-    const rawNilai = row["kisaran_nilai_tanah"] ?? row["KISARAN_NILAI_TANAH"];
+    const rawNilai = getRowField(row, [
+      "kisaran nilai tanah/m2",
+      "kisaran nilai tanah",
+      "kisaran_nilai_tanah",
+      "kisaran_nilai_tanah_m2",
+      "nilai tanah",
+      "nilai tanah/m2",
+      "nilai_tanah",
+      "harga tanah/m2",
+      "harga per m2",
+    ]);
     let kisaranNilaiTanah: number | null = null;
     if (rawNilai !== undefined && rawNilai !== null && rawNilai !== "") {
-      const parsed = typeof rawNilai === "number" ? rawNilai : parseFloat(rawNilai);
+      const parsed =
+        typeof rawNilai === "number"
+          ? rawNilai
+          : parseFloat(String(rawNilai).replace(/[^0-9.]/g, ""));
       if (!isNaN(parsed) && parsed > 0) {
         kisaranNilaiTanah = parsed;
       }
@@ -162,27 +262,143 @@ export function ingestDbTahap1Buffer(buffer: Buffer | Uint8Array): IngestionResu
       outlierCount++;
     }
 
-    const surveyorName = String(row["surveyor"] || "").trim();
+    const rawAlamat = String(
+      getRowField(row, [
+        "alamat",
+        "alamat lengkap",
+        "alamat_lengkap",
+        "lokasi properti",
+        "nama jalan",
+      ]) || ""
+    ).trim();
+
+    const rawProvinsi = String(
+      getRowField(row, ["provinsi", "propinsi", "province"]) || "Jawa Barat"
+    ).trim();
+
+    const rawKota = String(
+      getRowField(row, [
+        "kota_kab",
+        "kota kab",
+        "kota",
+        "kabupaten",
+        "kota/kab",
+        "kab",
+      ]) || ""
+    ).trim();
+
+    const rawKecamatan = String(
+      getRowField(row, ["kecamatan", "distrik"]) || ""
+    ).trim();
+
+    const rawDesa = String(
+      getRowField(row, [
+        "desa_kelurahan",
+        "desa kelurahan",
+        "kelurahan",
+        "desa",
+      ]) || ""
+    ).trim();
+
+    const rawTanggal = getRowField(row, [
+      "tanggal data",
+      "tanggal_data",
+      "tanggal",
+      "tgl data",
+      "tgl",
+    ]);
+    const tanggalData = parseExcelDate(rawTanggal);
+
+    const rawPenawaran = getRowField(row, [
+      "harga penawaran",
+      "harga_penawaran",
+      "penawaran",
+      "offering price",
+    ]);
+    const hargaPenawaran =
+      rawPenawaran !== undefined && rawPenawaran !== null && rawPenawaran !== ""
+        ? typeof rawPenawaran === "number"
+          ? rawPenawaran
+          : parseFloat(String(rawPenawaran).replace(/[^0-9.]/g, "")) || null
+        : null;
+
+    const rawTransaksi = getRowField(row, [
+      "harga transaksi",
+      "harga_transaksi",
+      "transaksi",
+      "deal price",
+    ]);
+    const hargaTransaksi =
+      rawTransaksi !== undefined && rawTransaksi !== null && rawTransaksi !== ""
+        ? typeof rawTransaksi === "number"
+          ? rawTransaksi
+          : parseFloat(String(rawTransaksi).replace(/[^0-9.]/g, "")) || null
+        : null;
+
+    const rawLegalitas = getRowField(row, ["legalitas", "surat hak", "sertifikat"]);
+    const rawTapak = getRowField(row, ["bentuk tapak", "bentuk_tapak", "tapak", "bentuk tanah"]);
+    const rawRow = getRowField(row, ["row jalan", "row_jalan", "lebar jalan", "row"]);
+    const rawSumber = getRowField(row, ["sumber data", "sumber_data", "sumber", "data sumber"]);
+    const rawNamaPemberi = getRowField(row, [
+      "nama pemberi data",
+      "nama_pemberi_data",
+      "pemberi data",
+      "informan",
+      "narasumber",
+    ]);
+    const rawNoPemberi = getRowField(row, [
+      "nomor pemberi data",
+      "nomor_pemberi_data",
+      "no pemberi data",
+      "no_pemberi_data",
+      "no hp pemberi data",
+      "kontak informan",
+      "no telp",
+      "telepon",
+    ]);
+
+    const surveyorName = String(
+      getRowField(row, ["surveyor", "nama surveyor", "surveyor ots", "penilai"]) || ""
+    ).trim();
     const vehiclePlate = surveyorVehicles[surveyorName.toUpperCase()];
 
+    const rawNo = getRowField(row, ["no", "nomor", "legacy_no", "id"]);
+
     records.push({
-      legacyNo: Number(row["no"] || records.length + 1),
-      jenisProperti: mapPropertyType(row["jenis_properti"]),
-      alamat: String(row["alamat"] || "").trim(),
-      provinsi: String(row["provinsi"] || "").trim(),
-      kotaKab: String(row["kota_kab"] || "").trim(),
-      kecamatan: String(row["kecamatan"] || "").trim(),
-      desaKelurahan: String(row["desa_kelurahan"] || "").trim(),
+      legacyNo: Number(rawNo || records.length + 1),
+      jenisProperti: mapPropertyType(
+        getRowField(row, ["jenis properti", "jenis_properti", "tipe properti"])
+      ),
+      alamat: rawAlamat,
+      provinsi: rawProvinsi,
+      kotaKab: rawKota,
+      kecamatan: rawKecamatan,
+      desaKelurahan: rawDesa,
       coordinate: sanitizedCoord,
       luasTanah,
       luasBangunan,
       kisaranNilaiTanah,
-      tanggalData: parseExcelDate(row["tanggal_data"]),
+      tanggalData,
       surveyor: surveyorName,
-      reviewer: String(row["reviewer"] || "").trim(),
-      admin: String(row["admin"] || "").trim(),
+      reviewer: String(
+        getRowField(row, ["reviewer", "nama reviewer", "penelaah"]) || ""
+      ).trim(),
+      admin: String(
+        getRowField(row, ["admin", "kode admin", "petugas admin"]) || ""
+      ).trim(),
       isOutlierArea,
       vehiclePlate,
+      sumberData: rawSumber ? String(rawSumber).trim() : undefined,
+      namaPemberiData: rawNamaPemberi ? String(rawNamaPemberi).trim() : undefined,
+      nomorPemberiData: rawNoPemberi ? String(rawNoPemberi).trim() : undefined,
+      hargaPenawaran,
+      hargaTransaksi,
+      legalitas: rawLegalitas ? String(rawLegalitas).trim().toUpperCase() : undefined,
+      tapak: rawTapak ? String(rawTapak).trim().toUpperCase() : undefined,
+      rowJalan: rawRow ? parseFloat(String(rawRow)) || 6.0 : undefined,
+      keterangan: getRowField(row, ["keterangan", "catatan", "deskripsi", "notes"])
+        ? String(getRowField(row, ["keterangan", "catatan", "deskripsi", "notes"])).trim()
+        : undefined,
     });
   }
 

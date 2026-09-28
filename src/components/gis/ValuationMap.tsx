@@ -276,10 +276,12 @@ export function ValuationMap({
     const visibleIds = new Set(properties.map((p) => p.id));
 
     if (mapRef.current) {
+      let newlyAddedCount = 0;
       // Add any new property added to data
       properties.forEach((p) => {
         if (!p.latitude || !p.longitude) return;
         if (!markersMapRef.current.has(p.id)) {
+          newlyAddedCount++;
           const isKosong = p.jenis_properti === "TANAH_KOSONG";
           const el = document.createElement("div");
           el.className = "cursor-pointer transition-transform hover:scale-125 select-none";
@@ -294,8 +296,9 @@ export function ValuationMap({
           `;
           el.addEventListener("click", (e) => {
             e.stopPropagation();
-            onSelectPropertyRef.current(p);
-            setActivePopupProperty(p);
+            const currentP = propertiesRef.current.find((item) => item.id === p.id) || p;
+            onSelectPropertyRef.current(currentP);
+            setActivePopupProperty(currentP);
           });
           const marker = new maplibregl.Marker({ element: el })
             .setLngLat([p.longitude, p.latitude])
@@ -303,6 +306,24 @@ export function ValuationMap({
           markersMapRef.current.set(p.id, { marker, el });
         }
       });
+
+      // If a batch of new properties was imported, smoothly fit bounds to encompass them
+      if (newlyAddedCount > 5) {
+        let minLng = 180, maxLng = -180, minLat = 90, maxLat = -90;
+        let valid = 0;
+        properties.forEach((p) => {
+          if (p.longitude && p.latitude) {
+            if (p.longitude < minLng) minLng = p.longitude;
+            if (p.longitude > maxLng) maxLng = p.longitude;
+            if (p.latitude < minLat) minLat = p.latitude;
+            if (p.latitude > maxLat) maxLat = p.latitude;
+            valid++;
+          }
+        });
+        if (valid > 0) {
+          mapRef.current.fitBounds([[minLng, minLat], [maxLng, maxLat]], { padding: 50, maxZoom: 15 });
+        }
+      }
     }
 
     markersMapRef.current.forEach(({ el }, id) => {
@@ -556,6 +577,42 @@ export function ValuationMap({
               </span>
             </div>
           </div>
+
+          {(activePopupProperty.sumber_data ||
+            activePopupProperty.nama_pemberi_data ||
+            activePopupProperty.nomor_pemberi_data) && (
+            <div className="text-[11px] bg-blue-950/30 border border-blue-900/50 p-2.5 rounded-xl space-y-1">
+              <div className="text-[10px] uppercase tracking-wider font-bold text-blue-400 flex items-center gap-1.5">
+                <span>📋 Informasi Sumber & Narasumber Data</span>
+              </div>
+              <div className="text-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs pt-0.5">
+                {activePopupProperty.sumber_data && (
+                  <div>
+                    <span className="text-slate-400 text-[10px] block font-sans">Sumber:</span>
+                    <span className="font-medium text-slate-200">{activePopupProperty.sumber_data}</span>
+                  </div>
+                )}
+                {activePopupProperty.nama_pemberi_data && (
+                  <div>
+                    <span className="text-slate-400 text-[10px] block font-sans">Pemberi Data:</span>
+                    <span className="font-medium text-slate-200">{activePopupProperty.nama_pemberi_data}</span>
+                  </div>
+                )}
+                {activePopupProperty.nomor_pemberi_data && (
+                  <div>
+                    <span className="text-slate-400 text-[10px] block font-sans">Kontak:</span>
+                    <a
+                      href={`tel:${activePopupProperty.nomor_pemberi_data}`}
+                      className="font-mono text-blue-400 hover:text-blue-300 hover:underline inline-flex items-center gap-1"
+                    >
+                      <span>📞</span>
+                      <span>{activePopupProperty.nomor_pemberi_data}</span>
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {activePopupProperty.keterangan && (
             <div className="text-[11px] text-slate-300 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80 leading-relaxed">
